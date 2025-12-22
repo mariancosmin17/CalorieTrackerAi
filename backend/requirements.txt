@@ -4,3 +4,6 @@ torch
 torchvision
 transformers
 pillow
+sqlalchemy
+passlib[bcrypt]
+python-jose[cryptography]

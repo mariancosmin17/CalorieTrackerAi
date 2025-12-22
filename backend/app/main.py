@@ -1,10 +1,12 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from PIL import Image
+from app.database import Base, engine
 import io
 from app.ml.calories import CalorieCalculator
 from app.ml.model import FoodClassifier
 from fastapi.middleware.cors import CORSMiddleware
 
+Base.metadata.create_all(bind=engine)
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
