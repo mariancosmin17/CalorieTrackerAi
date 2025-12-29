@@ -2,13 +2,16 @@ from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException, sta
 from fastapi.security import OAuth2PasswordBearer
 from PIL import Image
 from sqlalchemy.orm import Session
+from fastapi. middleware.cors import CORSMiddleware
+import io
+from app.core.utils import validate_email
 from app.core.security import decode_access_token, hash_password, verify_password, create_access_token
 from app.db.models import User, History
 from app.db.database import Base, engine, SessionLocal
-import io
 from app.ml. calories import CalorieCalculator
 from app.ml.model import FoodClassifier
-from fastapi. middleware.cors import CORSMiddleware
+
+from backend.app.core.utils import validate_email
 
 Base.metadata.create_all(bind=engine)
 
@@ -59,15 +62,29 @@ calorie_calculator = CalorieCalculator("calorie_table.csv")
 def root():
     return {"message": "Food AI API is running"}
 @app.post("/register")
-def register(username:str=Form(...),password:str=Form(...),db:Session=Depends(get_db)):
+def register(username:str=Form(...),password:str=Form(...),email:str=Form(...),db:Session=Depends(get_db)):
+    if not validate_email(email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid email format."
+        )
+
     existing_user=db.query(User).filter(User.username==username).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already registered."
         )
+
+    existing_email=db.query(User).filter(User.email==email).first()
+    if existing_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered."
+        )
+
     hashed_password=hash_password(password)
-    user=User(username=username,hashed_password=hashed_password)
+    user=User(username=username,email=email,hashed_password=hashed_password)
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -76,11 +93,15 @@ def register(username:str=Form(...),password:str=Form(...),db:Session=Depends(ge
 @app.post("/login")
 def login(username:str=Form(...),password:str=Form(...),db:Session=Depends(get_db)):
     user=db.query(User).filter(User.username==username).first()
+    if not user:
+        user=db.query(User).filter(User.email==username).first()
+
     if not user or not verify_password(password,user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password"
+            detail="Incorrect username/email or password"
         )
+
     access_token=create_access_token(data={"sub":user.username})
     return {"access_token":access_token,"token_type":"bearer"}
 
