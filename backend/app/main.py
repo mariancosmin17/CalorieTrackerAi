@@ -4,14 +4,12 @@ from PIL import Image
 from sqlalchemy.orm import Session
 from fastapi. middleware.cors import CORSMiddleware
 import io
-from app.core.utils import validate_email
+from app.core.utils import validate_email,validate_password
 from app.core.security import decode_access_token, hash_password, verify_password, create_access_token
 from app.db.models import User, History
 from app.db.database import Base, engine, SessionLocal
 from app.ml. calories import CalorieCalculator
 from app.ml.model import FoodClassifier
-
-from backend.app.core.utils import validate_email
 
 Base.metadata.create_all(bind=engine)
 
@@ -67,6 +65,13 @@ def register(username:str=Form(...),password:str=Form(...),email:str=Form(...),d
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid email format."
+        )
+
+    is_valid, error_message = validate_password(password)
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=error_message
         )
 
     existing_user=db.query(User).filter(User.username==username).first()
