@@ -145,6 +145,39 @@ def forgot_password(email:str=Form(...),db:Session=Depends(get_db)):
         "expires_in_minutes": settings.RESET_CODE_EXPIRE_MINUTES
     }
 
+@app.post("/reset-password")
+def reset_password(email:str=Form(...),reset_code:str=Form(...),new_password:str=Form(...),db:Session=Depends(get_db)):
+    user=db.query(User).filter(User.email==email).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid email or reset code."
+        )
+    reset_entry=db.query(PasswordReset).filter(PasswordReset.user_id==user.id,PasswordReset.reset_code==reset_code,PasswordReset.is_used==0).first()
+    if not reset_entry:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset code."
+        )
+    if datetime.utcnow() > reset_entry.expires_at:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reset code has expired.  Please request a new one."
+        )
+    is_valid, error_message = validate_password(new_password)
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=error_message
+        )
+    user.hashed_password=hash_password(new_password)
+    reset_entry.is_used = 1
+    db.commit()
+    return {
+        "message": "Password reset successfully.",
+        "email": email
+    }
+
 @app.post("/predict")
 async def predict(file: UploadFile = File(...),grams:int=Form(...,ge=1,le=2500),
                   db:Session=Depends(get_db),current_user:User=Depends(get_current_user)):
