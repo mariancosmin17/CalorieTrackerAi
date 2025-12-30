@@ -1,4 +1,7 @@
+import random
 import re
+import string
+from datetime import datetime,timedelta
 
 def validate_email(email:str)->bool:
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -14,3 +17,9 @@ def validate_password(password:str)->tuple[bool,str]:
     if not re.search(r'[0-9]',password):
         return False,"Password must contain at least one digit."
     return True,""
+
+def generate_code()->str:
+    return ''.join(random.choices(string.digits,k=6))
+
+def is_code_expired(expires_at:datetime)->bool:
+    return datetime.utcnow()>expires_at

@@ -3,10 +3,13 @@ from fastapi.security import OAuth2PasswordBearer
 from PIL import Image
 from sqlalchemy.orm import Session
 from fastapi. middleware.cors import CORSMiddleware
+from datetime import datetime,timedelta
 import io
-from app.core.utils import validate_email,validate_password
+from app.core.config import settings
+from app.core.email import send_reset_code_email
+from app.core.utils import validate_email,validate_password,generate_reset_code
 from app.core.security import decode_access_token, hash_password, verify_password, create_access_token
-from app.db.models import User, History
+from app.db.models import User, History,PasswordReset
 from app.db.database import Base, engine, SessionLocal
 from app.ml. calories import CalorieCalculator
 from app.ml.model import FoodClassifier
@@ -109,6 +112,38 @@ def login(username:str=Form(...),password:str=Form(...),db:Session=Depends(get_d
 
     access_token=create_access_token(data={"sub":user.username})
     return {"access_token":access_token,"token_type":"bearer"}
+
+@app.post("/forgot-password")
+def forgot_password(email:str=Form(...),db:Session=Depends(get_db)):
+    if not validate_email(email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid email format."
+        )
+
+    user=db.query(User).filter(User.email==email).first()
+    if not user:
+        return {
+            "message": "If this email exists, a reset code has been sent.",
+            "email": email
+        }
+    reset_code=generate_reset_code()
+    expires_at=datetime.utcnow()+timedelta(minutes=settings.RESET_CODE_EXPIRE_MINUTES)
+    db.query(PasswordReset).filter(PasswordReset.user_id==user.id,PasswordReset.is_used==0).delete()
+    password_reset=PasswordReset(user_id=user.id,reset_code=reset_code,expires_at=expires_at,is_used=0)
+    db.add(password_reset)
+    db.commit()
+    email_sent=send_reset_code_email(user.email,reset_code)
+    if not email_sent:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to send email.  Please try again later."
+        )
+    return {
+        "message": "Reset code sent to your email.",
+        "email": email,
+        "expires_in_minutes": settings.RESET_CODE_EXPIRE_MINUTES
+    }
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...),grams:int=Form(...,ge=1,le=2500),

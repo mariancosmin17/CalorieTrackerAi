@@ -11,6 +11,7 @@ class User(Base):
     hashed_password=Column(String,nullable=False)
     created_at=Column(DateTime,default=datetime.utcnow)
     history=relationship("History",back_populates="user")
+    reset_codes=relationship("PasswordReset",back_populates="user")
 
 class History(Base):
     __tablename__="history"
