@@ -6,8 +6,8 @@ from fastapi. middleware.cors import CORSMiddleware
 from datetime import datetime,timedelta
 import io
 from app.core.config import settings
-from app.core.email import send_reset_code_email
-from app.core.utils import validate_email,validate_password,generate_reset_code
+from app.core.email import send_reset_code
+from app.core.utils import validate_email,validate_password,generate_code
 from app.core.security import decode_access_token, hash_password, verify_password, create_access_token
 from app.db.models import User, History,PasswordReset
 from app.db.database import Base, engine, SessionLocal
@@ -127,13 +127,13 @@ def forgot_password(email:str=Form(...),db:Session=Depends(get_db)):
             "message": "If this email exists, a reset code has been sent.",
             "email": email
         }
-    reset_code=generate_reset_code()
+    reset_code=generate_code()
     expires_at=datetime.utcnow()+timedelta(minutes=settings.RESET_CODE_EXPIRE_MINUTES)
     db.query(PasswordReset).filter(PasswordReset.user_id==user.id,PasswordReset.is_used==0).delete()
     password_reset=PasswordReset(user_id=user.id,reset_code=reset_code,expires_at=expires_at,is_used=0)
     db.add(password_reset)
     db.commit()
-    email_sent=send_reset_code_email(user.email,reset_code)
+    email_sent=send_reset_code(user.email,reset_code)
     if not email_sent:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
