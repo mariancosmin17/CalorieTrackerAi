@@ -8,9 +8,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES:int=30
     SMTP_HOST:str="smtp.gmail.com"
     SMTP_PORT:int=587
-    SMTP_USERNAME:str="mariancosmin694@gmail.com"
-    SMTP_PASSWORD:str="afjs wxzg macz gnfg"
-    SMTP_FROM_EMAIL:str="mariancosmin694@gmail.com"
+    SMTP_USERNAME:str
+    SMTP_PASSWORD:str
+    SMTP_FROM_EMAIL:str
     SMTP_FROM_NAME:str="Food AI App"
     RESET_CODE_EXPIRE_MINUTES:int=15
 

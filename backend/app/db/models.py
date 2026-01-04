@@ -1,3 +1,5 @@
+from xmlrpc.client import Boolean
+
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from app.db.database import Base
@@ -10,6 +12,8 @@ class User(Base):
     email=Column(String,unique=True,index=True,nullable=False)
     hashed_password=Column(String,nullable=False)
     created_at=Column(DateTime,default=datetime.utcnow)
+    is_2fa_enabled=Column(Boolean,default=False)
+    totp_secret=Column(String,nullable=True)
     history=relationship("History",back_populates="user")
     reset_codes=relationship("PasswordReset",back_populates="user")
 
