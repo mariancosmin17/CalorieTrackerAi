@@ -13,6 +13,12 @@ from app.db.models import User, History,PasswordReset
 from app.db.database import Base, engine, SessionLocal
 from app.ml. calories import CalorieCalculator
 from app.ml.model import FoodClassifier
+from app.core.totp import (
+    generate_totp_secret,
+    generate_qr_code,
+    verify_totp_code,
+    get_current_totp_code
+)
 
 Base.metadata.create_all(bind=engine)
 
@@ -176,6 +182,71 @@ def reset_password(email:str=Form(...),reset_code:str=Form(...),new_password:str
     return {
         "message": "Password reset successfully.",
         "email": email
+    }
+
+@app.post("/2fa/enable")
+def enable_2fa(db:Session=Depends(get_db),current_user:User=Depends(get_current_user)):
+    if current_user.is_2fa_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="2FA is already enabled for this account."
+        )
+    secret=generate_totp_secret()
+    current_user.totp_secret=secret
+    qr_code=generate_qr_code(username=current_user.email,secret=secret,issuer="CalorieTrackerAi")
+    return {
+        "message": "Scan the QR code with Google Authenticator",
+        "qr_code": qr_code,
+        "instructions": [
+            "1. Install Google Authenticator on your phone",
+            "2. Open the QR code URL in browser",
+            "3. Scan the QR code with Google Authenticator",
+            "4. Enter the 6-digit code to confirm"
+        ]
+    }
+
+@app.post("/2fa/disable")
+def disable_2fa(db:Session=Depends(get_db),current_user:User=Depends(get_current_user),code:str=Form(...)):
+    if not current_user.is_2fa_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="2FA is not enabled for this account."
+        )
+    if not verify_totp_code(current_user.totp_secret, code):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification code."
+        )
+    current_user.is_2fa_enabled=False
+    current_user.totp_secret=None
+    db.commit()
+    return {
+        "message": "2FA disabled successfully.",
+        "email": current_user.email
+    }
+
+@app.post("/2fa/verify")
+def verify_2fa(db:Session=Depends(get_db),code:str=Form(...),current_user:User=Depends(get_current_user)):
+    if not current_user.totp_secret:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="2FA setup not initiated.  Call /2fa/enable first."
+        )
+    if current_user.is_2fa_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="2FA is already enabled."
+        )
+    if not verify_totp_code(current_user.totp_secret, code):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification code."
+        )
+    current_user.is_2fa_enabled=True
+    db.commit()
+    return {
+        "message": "2FA enabled successfully! ",
+        "email": current_user.email
     }
 
 @app.post("/predict")
