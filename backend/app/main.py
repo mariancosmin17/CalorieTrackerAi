@@ -116,8 +116,52 @@ def login(username:str=Form(...),password:str=Form(...),db:Session=Depends(get_d
             detail="Incorrect username/email or password"
         )
 
+    if user.is_2fa_enabled:
+        temp_token=create_access_token(
+            data={"sub":user.username,"temp":True},
+            expires_delta=timedelta(minutes=5)
+        )
+        return {
+            "requires_2fa":True,
+            "temp_token":temp_token,
+            "message":"Please provide 2FA code"
+        }
+
     access_token=create_access_token(data={"sub":user.username})
     return {"access_token":access_token,"token_type":"bearer"}
+
+@app.post("/login/2fa")
+def login_2fa(temp_token:str=Form(...),code:str=Form(...),db:Session=Depends(get_db)):
+    payload=decode_access_token(temp_token)
+    if not payload or not payload.get("temp"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired temporary token"
+        )
+    username=payload.get("sub")
+    if not username:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token"
+        )
+    user=db.query(User).filter(User.username==username).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found"
+        )
+    if not user.is_2fa_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="2FA is not enabled for this account"
+        )
+    if not verify_totp_code(user.totp_secret,code):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid 2FA code"
+        )
+    access_token=create_access_token(data={"sub":user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
 
 @app.post("/forgot-password")
 def forgot_password(email:str=Form(...),db:Session=Depends(get_db)):
