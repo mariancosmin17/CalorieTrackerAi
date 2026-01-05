@@ -38,6 +38,12 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials",
         )
+    if payload.get("temp"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Temporary token not allowed.  Please complete 2FA verification.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     username = payload.get("sub")
     if not username:
         raise HTTPException(
@@ -237,6 +243,7 @@ def enable_2fa(db:Session=Depends(get_db),current_user:User=Depends(get_current_
         )
     secret=generate_totp_secret()
     current_user.totp_secret=secret
+    db.commit()
     qr_code=generate_qr_code(username=current_user.email,secret=secret,issuer="CalorieTrackerAi")
     return {
         "message": "Scan the QR code with Google Authenticator",
