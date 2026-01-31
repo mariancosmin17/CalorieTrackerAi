@@ -12,3 +12,5 @@ python-dotenv
 pydantic-settings
 pyotp
 qrcode[pil]
+ultralytics
+opencv-python
