@@ -8,3 +8,4 @@ venv/
 venv_py311/
 data/
 yolov8n.pt
+runs/

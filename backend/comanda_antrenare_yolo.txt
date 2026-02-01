@@ -1,0 +1,1 @@
+yolo detect train data=data/yolo_food_dataset/data.yaml model=yolov8n.pt epochs=50 imgsz=640 batch=16 patience=10 name=food_nano_v1 device=0
