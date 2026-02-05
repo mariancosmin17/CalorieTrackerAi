@@ -1,32 +1,36 @@
 from ultralytics import YOLO
+from pathlib import Path
+import cv2
+import random
 
-model = YOLO('runs/detect/food_nano_v1/weights/best.pt')
+model = YOLO('runs/detect/allinone_yolov8n_v1/weights/best.pt')
 
-test_images = [
-    'test/test_burger.jpg',
-    'test/test_pizza.jpg',
-    'test/test_steak.jpg',
-    'test/test_pasta2.jpg',
-    'test/test_bacon.jpg',
-    'test/test_gchicken.jpg',
-    'test/test_rice.jpg',
-    'test/test_salad.jpg'
-]
+val_images = Path('data/Dataset2_rboflow/valid/images')
+val_labels = Path('data/Dataset2_rboflow/valid/labels')
+output_dir = Path('test_comparison')
+output_dir.mkdir(exist_ok=True)
+
+all_images = list(val_images.glob('*.jpg'))
+test_images = random.sample(all_images, min(10, len(all_images)))
+
+print(f"Testing pe {len(test_images)} imagini\n")
 
 for img_path in test_images:
-    print(f"\n{'=' * 50}")
-    print(f"Testare: {img_path}")
-    print('=' * 50)
+    results = model.predict(img_path, conf=0.25, imgsz=640, verbose=False)
 
-    results = model.predict(img_path, conf=0.15, save=True)
+    n_detections = len(results[0].boxes)
 
-    for box in results[0].boxes:
-        cls_id = int(box.cls[0])
-        cls_name = model.names[cls_id]
-        conf = float(box.conf[0])
-        print(f"  {cls_name}: {conf * 100:.1f}%")
+    label_path = val_labels / f"{img_path.stem}.txt"
+    n_true = 0
+    if label_path.exists():
+        with open(label_path, 'r') as f:
+            n_true = len(f.readlines())
 
-    if len(results[0].boxes) == 0:
-        print(" Nimic detectat")
+    result_img = results[0].plot()
+    output_path = output_dir / img_path.name
+    cv2.imwrite(str(output_path), result_img)
 
-print(f"\n Imagini salvate în: runs/detect/predict/")
+    print(f" {img_path.name}")
+    print(f"  TRUE objects: {n_true}")
+    print(f"  PREDICTED:    {n_detections}")
+    print(f" Salvat in: {output_path}\n")
