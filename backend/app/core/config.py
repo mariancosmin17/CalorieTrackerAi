@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     SMTP_FROM_EMAIL:str
     SMTP_FROM_NAME:str="Food AI App"
     RESET_CODE_EXPIRE_MINUTES:int=15
+    GEMINI_API_KEY:str=""
+    GEMINI_MODEL:str="gemini-3-flash-preview"
+    YOLO_MODEL_PATH:str="runs/detect/allinone_yolov8n_v1/weights/best.pt"
 
     class Config:
         env_file=".env"

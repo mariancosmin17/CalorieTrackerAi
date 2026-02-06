@@ -4,6 +4,8 @@ from PIL import Image
 from sqlalchemy.orm import Session
 from fastapi. middleware.cors import CORSMiddleware
 from datetime import datetime,timedelta
+import os
+import uuid
 import io
 from app.core.config import settings
 from app.core.email import send_reset_code
@@ -11,8 +13,7 @@ from app.core.utils import validate_email,validate_password,generate_code
 from app.core.security import decode_access_token, hash_password, verify_password, create_access_token
 from app.db.models import User, History,PasswordReset
 from app.db.database import Base, engine, SessionLocal
-from app.ml. calories import CalorieCalculator
-from app.ml.model import FoodClassifier
+from app.services.nutrition_estimator import NutritionEstimator
 from app.core.totp import (
     generate_totp_secret,
     generate_qr_code,
@@ -68,8 +69,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-classifier = FoodClassifier()
-calorie_calculator = CalorieCalculator("calorie_table.csv")
+try:
+    nutrition_estimator=NutritionEstimator()
+except Exception as e:
+    print(f"Warning: Nutrition Estimator failed to initialize: {e}")
+    nutrition_estimator=None
 
 @app.get("/")
 def root():
@@ -301,22 +305,94 @@ def verify_2fa(db:Session=Depends(get_db),code:str=Form(...),current_user:User=D
     }
 
 @app.post("/predict")
-async def predict(file: UploadFile = File(...),grams:int=Form(...,ge=1,le=2500),
-                  db:Session=Depends(get_db),current_user:User=Depends(get_current_user)):
+async def predict(file: UploadFile=File(...),db:Session=Depends(get_db),current_user:User=Depends(get_current_user)):
+    try:
+        if nutrition_estimator is None:
+            raise HTTPException(
+                status_code=500,
+                detail="Nutrition analysis not available"
+            )
+        contents = await file.read()
+        allowed_extensions = {'png','jpg','jpeg','gif','bmp'}
+        file_ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+        if file_ext not in allowed_extensions:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid file type.Allowed: {', '.join(allowed_extensions)}"
+            )
+        upload_folder='uploads'
+        os.makedirs(upload_folder,exist_ok=True)
+        unique_filename=f"{uuid.uuid4()}_{file.filename}"
+        temp_path=os.path.join(upload_folder,unique_filename)
+        with open(temp_path,'wb') as f:
+            f.write(contents)
+        try:
+            result=nutrition_estimator.analyze_image(temp_path)
+            if result is None:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Analysis returned no result (internal error)"
+                )
+            try:
+                os.remove(temp_path)
+            except:
+                pass
+            if not result['success']:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Analysis failed: {result.get('error','Unknown error')}"
+                )
+            final_result=result["final_result"]
+            final_foods=final_result["final_foods"]
+            for food_item in final_foods:
+                food_name=food_item['name']
+                nutrition=food_item.get('nutrition',{})
+                if nutrition is None:
+                    nutrition={}
+                estimated_grams=nutrition.get('estimated_weight_grams',0) or 0
+                estimated_calories=nutrition.get('calories_total',0) or 0
+                macros=nutrition.get('macronutrients',{})
+                if macros is None:
+                    macros={}
+                protein_g=macros.get('protein_g',0.0) or 0.0
+                carbs_g=macros.get('carbs_g',0.0) or 0.0
+                fat_g=macros.get('fat_g',0.0) or 0.0
+                history=History(label=food_name,
+                                grams=estimated_grams,
+                                calories=estimated_calories,
+                                protein_g=protein_g,
+                                carbs_g=carbs_g,
+                                fat_g=fat_g,
+                                user_id=current_user.id)
+                db.add(history)
+            db.commit()
+            return {
+                "success":True,
+                "foods_detected":final_foods,
+                "total_nutrition":final_result['total_nutrition'],
+                "reconciliation_info":final_result['reconciliation_summary'],
+                "history_saved":True,
+                "items_saved":len(final_foods)
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            try:
+                os.remove(temp_path)
+            except:
+                pass
+            raise HTTPException(
+                status_code=500,
+                detail=f"Analysis failed: {str(e)}"
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Server error: {str(e)}"
+        )
 
-    contents = await file.read()
-    image = Image.open(io.BytesIO(contents)).convert("RGB")
-    label = classifier.predict(image)
-    calories=calorie_calculator.calculate(label,grams)
-
-    history=History(label=label,grams=grams,calories=calories,user_id=current_user.id)
-    db.add(history)
-    db.commit()
-    return {
-        "prediction": label,
-        "grams":grams,
-        "calories":calories
-    }
 @app.get("/history")
 def get_history(db:Session=Depends(get_db),current_user=Depends(get_current_user)):
     history=(db.query(History).filter(History.user_id==current_user.id).order_by(History.created_at.desc()).all())

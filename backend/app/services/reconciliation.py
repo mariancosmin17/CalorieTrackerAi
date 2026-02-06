@@ -99,7 +99,6 @@ class ReconciliationService:
                return est
        return None
 
-
 if __name__ == "__main__":
     yolo_detections=[
         {'class': 'Pizza', 'confidence': 0.89},

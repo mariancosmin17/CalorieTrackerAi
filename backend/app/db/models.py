@@ -21,8 +21,11 @@ class History(Base):
     label=Column(String,nullable=False)
     grams=Column(Integer,nullable=False)
     calories=Column(Float,nullable=False)
-    created_at=Column(DateTime,default=datetime.utcnow)
+    protein_g=Column(Float,nullable=False,default=0.0)
+    carbs_g=Column(Float,nullable=False,default=0.0)
+    fat_g=Column(Float,nullable=False,default=0.0)
 
+    created_at=Column(DateTime,default=datetime.utcnow)
     user_id=Column(Integer,ForeignKey("users.id"))
     user=relationship("User",back_populates="history")
 
