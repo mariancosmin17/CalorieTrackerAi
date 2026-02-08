@@ -2,11 +2,14 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:80
 
 export const API_ENDPOINTS = {
   LOGIN: '/login',
+  LOGIN_2FA: '/login/2fa',
   REGISTER: '/register',
   LOGOUT: '/logout',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
-  VERIFY_2FA: '/verify-2fa',
+  ENABLE_2FA: '/2fa/enable',
+  VERIFY_2FA_SETUP: '/2fa/verify',
+  DISABLE_2FA: '/2fa/disable',
   PROFILE: '/profile',
   UPDATE_PROFILE: '/profile',
   PREDICT: '/predict',
