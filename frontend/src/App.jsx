@@ -1,16 +1,6 @@
 import {BrowserRouter,Routes,Route,Navigate} from 'react-router-dom';
 import {useAuth} from './context/AuthContext';
-
-function LoginPage(){
-    return(
-        <div className="page-container">
-            <div className="card max-w-md">
-                <h1 className="text-3xl font-bold text-primary-600 mb-4">Login</h1>
-                <p className="text-gray-600">Login page</p>
-            </div>
-        </div>
-        );
-    }
+import {LoginPage} from './pages/auth/LoginPage';
 
 function RegisterPage() {
   return (
