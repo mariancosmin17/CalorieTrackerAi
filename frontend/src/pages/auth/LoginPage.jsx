@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link,useNavigate,useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
@@ -7,6 +7,7 @@ import { Button } from '../../components/common/Button';
 export function LoginPage() {
   const { login, isLoggedIn } = useAuth();
   const navigate = useNavigate();
+  const [successInfo, setSuccessInfo] = useState(location.state?.message || '');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -93,6 +94,14 @@ export function LoginPage() {
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-600 text-sm text-center">
                 {error}
+              </p>
+            </div>
+          )}
+
+          {successInfo && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-600 text-sm text-center">
+                {successInfo}
               </p>
             </div>
           )}
