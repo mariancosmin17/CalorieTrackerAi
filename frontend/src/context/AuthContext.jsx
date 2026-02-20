@@ -112,7 +112,7 @@ export function AuthProvider({children}){
         catch(error){
             return{
                 success:false,
-                error:error||'Failed to send reset code';
+                error:error||'Failed to send reset code',
                 };
             }
         };

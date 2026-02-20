@@ -124,7 +124,7 @@ export function LoginPage() {
                 to="/forgot-password"
                 className="text-sm text-gray-600 hover:text-primary-600 transition-colors"
               >
-                Forget password?
+                Forgot password?
               </Link>
             </div>
 

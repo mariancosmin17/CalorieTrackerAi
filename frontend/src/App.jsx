@@ -2,6 +2,7 @@ import {BrowserRouter,Routes,Route,Navigate} from 'react-router-dom';
 import {useAuth} from './context/AuthContext';
 import {LoginPage} from './pages/auth/LoginPage';
 import {RegisterPage} from './pages/auth/RegisterPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 
 function DashboardPage() {
   const {user,logout}=useAuth();
@@ -61,6 +62,14 @@ function App(){
           element={
             <PublicRoute>
               <RegisterPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <PublicRoute>
+              <ForgotPasswordPage />
             </PublicRoute>
           }
         />
