@@ -1,17 +1,7 @@
 import {BrowserRouter,Routes,Route,Navigate} from 'react-router-dom';
 import {useAuth} from './context/AuthContext';
 import {LoginPage} from './pages/auth/LoginPage';
-
-function RegisterPage() {
-  return (
-    <div className="page-container">
-      <div className="card max-w-md">
-        <h1 className="text-3xl font-bold text-primary-600 mb-4">Register</h1>
-        <p className="text-gray-600">Register page</p>
-      </div>
-    </div>
-  );
-}
+import {RegisterPage} from './pages/auth/RegisterPage';
 
 function DashboardPage() {
   const {user,logout}=useAuth();

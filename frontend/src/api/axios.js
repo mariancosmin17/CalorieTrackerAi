@@ -33,7 +33,17 @@ apiClient.interceptors.response.use(
                 localStorage.removeItem(STORAGE_KEYS.USER);
                 window.location.href='/login';
             }
-            const errorMessage=data?.detail||data?.message||'An error occurred';
+
+            let errorMessage = 'An error occurred';
+            if (data?.detail) {
+                errorMessage = data.detail;
+            }
+            else if (data?.message) {
+                errorMessage = data.message;
+            }
+            else if (typeof data === 'string') {
+                errorMessage = data;
+            }
             return Promise.reject(errorMessage)
         }
         else if (error.request){

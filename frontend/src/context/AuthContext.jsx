@@ -1,5 +1,5 @@
 import { createContext,useContext,useState,useEffect } from 'react';
-import { loginUser,login2FA,registerUser,logoutUser } from '../api/authApi';
+import { loginUser,login2FA,registerUser,logoutUser,requestPasswordReset,resetPassword } from '../api/authApi';
 import { STORAGE_KEYS } from '../utils/constants';
 
 const AuthContext=createContext(null);
@@ -100,6 +100,40 @@ export function AuthProvider({children}){
             }
         };
 
+    const forgotPassword =async (email)=>{
+        try{
+            const response=await requestPasswordReset(email);
+            return {
+                success:true,
+                message:response.message||'Reset code sent to your email',
+                expiresInMinutes:response.expires_in_minutes,
+                };
+            }
+        catch(error){
+            return{
+                success:false,
+                error:error||'Failed to send reset code';
+                };
+            }
+        };
+
+    const resetPasswordWithCode= async(data)=>{
+        try{
+            const response=await resetPassword(data);
+            return{
+                success:true,
+                message:response.message||'Password reset successfully',
+                };
+            }
+        catch(error)
+        {
+            return{
+                success:false,
+                error:error||'Failed to reset password',
+                };
+            }
+        };
+
     const logout=async()=>{
         try{
             await logoutUser();
@@ -114,6 +148,7 @@ export function AuthProvider({children}){
             window.location.href='/login';
             }
         };
+
     const value={
         user,
         isLoggedIn,
@@ -121,6 +156,8 @@ export function AuthProvider({children}){
         login,
         verify2FA,
         register,
+        forgotPassword,
+        resetPassword:resetPasswordWithCode,
         logout,
         checkAuth,
         };

@@ -40,22 +40,30 @@ export function LoginPage() {
       return;
     }
 
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       
       const result = await login({ username, password });
-      
-      // Check result
-      if (result.success) {
+
+        if (result.success) {
         navigate('/dashboard');
       } else if (result.requires2FA) {
-
         alert('2FA required! (mai tz)');
       } else {
         setError(result.error || 'Login failed');
       }
     } catch (err) {
-      setError('Something went wrong. Please try again.');
+        if(typeof err==='string')
+        {
+            setError(err);
+        }
+        else if(err instanceof Error)
+        {
+            setError(err.message);
+            }
+        else{
+            setError('Something went wrong. Please try again.');
+            }
       console.error('Login error:', err);
     } finally {
       setIsLoading(false);
@@ -69,9 +77,7 @@ export function LoginPage() {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0A1F44] via-[#1E3A5F] to-gray-100 flex items-center justify-center p-4">
-
       <div className="w-full max-w-md">
-
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
             Hello
@@ -121,7 +127,6 @@ export function LoginPage() {
                 Forget password?
               </Link>
             </div>
-            
 
             <Button
               type="submit"
