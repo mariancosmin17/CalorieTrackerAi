@@ -4,18 +4,23 @@ import {LoginPage} from './pages/auth/LoginPage';
 import {RegisterPage} from './pages/auth/RegisterPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
+import { BottomNavbar } from './components/layout/BottomNavbar';
 
 function DashboardPage() {
-  const {user,logout}=useAuth();
+  const { user, logout } = useAuth();
   return (
-    <div className="page-container">
-      <div className="card max-w-md">
-        <h1 className="text-3xl font-bold text-primary-600 mb-4">Dashboard</h1>
-        <p className="text-gray-600 mb-4">Welcome, {user?.username}!</p>
-        <button onClick={logout} className="btn-primary w-full">
-          Logout
-        </button>
+    <div className="min-h-screen bg-gradient-to-b from-[#0A1F44] via-[#1E3A5F] to-gray-100 pb-20">
+      <div className="p-6">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md mx-auto">
+          <h1 className="text-3xl font-bold text-[#1E3A5F] mb-4">Dashboard</h1>
+          <p className="text-gray-600 mb-4">Welcome, {user?.username}!</p>
+          <button onClick={logout} className="w-full py-3 bg-[#00ACC1] text-white rounded-lg hover:bg-[#008B9C] transition-colors">
+            Logout
+          </button>
+        </div>
       </div>
+
+      <BottomNavbar />
     </div>
   );
 }

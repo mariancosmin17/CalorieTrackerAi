@@ -28,13 +28,6 @@ export const APP_CONFIG = {
   TIMEOUT: 30000,
 };
 
-export const VALIDATION = {
-  PASSWORD_MIN_LENGTH: 8,
-  PASSWORD_MAX_LENGTH: 128,
-  USERNAME_MIN_LENGTH: 3,
-  USERNAME_MAX_LENGTH: 30,
-};
-
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
