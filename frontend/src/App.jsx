@@ -14,7 +14,7 @@ function DashboardPage() {
         <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md mx-auto">
           <h1 className="text-3xl font-bold text-[#1E3A5F] mb-4">Dashboard</h1>
           <p className="text-gray-600 mb-4">Welcome, {user?.username}!</p>
-          <button onClick={logout} className="w-full py-3 bg-[#00ACC1] text-white rounded-lg hover:bg-[#008B9C] transition-colors">
+          <button onClick={logout} className="w-full py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
             Logout
           </button>
         </div>
