@@ -8,8 +8,7 @@ import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { BottomNavbar } from './components/layout/BottomNavbar';
 import { CaloriesTab } from './components/features/dashboard/CaloriesTab';
 import { NutrientsTab } from './components/features/dashboard/NutrientsTab';
-
-
+import { DashboardPage } from './pages/dashboard/DashboardPage';
 
 function ProtectedRoute({children}){
     const {isLoggedIn,isLoading}=useAuth();
