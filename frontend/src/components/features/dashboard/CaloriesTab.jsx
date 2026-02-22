@@ -5,29 +5,6 @@ export function CaloriesTab(){
     const calorieGoal=2000;
     const caloriesConsumed=920;
     const caloriesRemaining=calorieGoal - caloriesConsumed;
-    const todaysMeals = [
-    {
-      id: 1,
-      name: 'Carnati',
-      type: 'Breakfast',
-      time: '08:30',
-      calories: 320,
-    },
-    {
-      id: 2,
-      name: 'Piept de pui cu orez',
-      type: 'Lunch',
-      time: '13:00',
-      calories: 450,
-    },
-    {
-      id: 3,
-      name: 'Iaurt grecesc',
-      type: 'Snack',
-      time: '16:30',
-      calories: 150,
-    },
-    ];
     return(
         <div className="space-y-6">
            <div>
@@ -48,14 +25,14 @@ export function CaloriesTab(){
                <div className="mt-6 bg-blue-50 rounded-xl p-4">
                   <div className="flex items-center justify-between">
                       <div>
-                          <p className="text-sm text-blue-600 font-medium mb-1">
+                          <p className="text-sm text-gray-900 font-medium mb-1">
                               Remaining
                           </p>
-                          <p className="text-2xl font-bold text-blue-700">
+                          <p className="text-2xl font-bold text-primary-700">
                               {caloriesRemaining} kcal
                           </p>
                       </div>
-                      <ArrowTrendingUpIcon className="w-8 h-8 text-blue-500"/>
+                      <ArrowTrendingUpIcon className="w-8 h-8 text-primary-700"/>
                   </div>
                </div>
            </div>

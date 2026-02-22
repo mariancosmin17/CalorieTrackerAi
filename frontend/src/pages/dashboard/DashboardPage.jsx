@@ -46,11 +46,11 @@ export function DashboardPage() {
                     </p>
                 </div>
                 <div className="bg-white rounded-2xl shadow-lg mb-6 overflow-hidden">
-                    <div className="flex bg-gray-50 p-1">
+                    <div className="flex bg-gray-50 p-1.5">
                         <button
                             onClick={() => setActiveTab('calories')}
                             className={`
-                                flex-1 py-2.5 px-4 text-sm font-medium rounded-xl transition-all
+                                flex-1 py-3.5 px-6 text-base font-semibold rounded-xl transition-all
                                 ${
                                     activeTab === 'calories'
                                       ? 'bg-white text-primary-600 shadow-sm'
@@ -63,7 +63,7 @@ export function DashboardPage() {
                         <button
                             onClick={() => setActiveTab('nutrients')}
                             className={`
-                                flex-1 py-2.5 px-4 text-sm font-medium rounded-xl transition-all
+                                flex-1 py-3.5 px-6 text-base font-semibold rounded-xl transition-all
                                 ${
                                     activeTab === 'nutrients'
                                       ? 'bg-white text-primary-600 shadow-sm'
