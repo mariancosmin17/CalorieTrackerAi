@@ -9,6 +9,7 @@ export function ProgressRing({
 {
     const percentage=total>0 ? Math.min((current/total)*100,100) : 0;
     const radius=(size-strokeWidth)/2;
+    const circumference = 2*Math.PI*radius;
     const offset=circumference-(percentage/100)*circumference;
     return(
         <div className="relative inline-flex items-center justify-center">
