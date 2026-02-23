@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CaloriesTab } from '../../components/features/dashboard/CaloriesTab';
 import { NutrientsTab } from '../../components/features/dashboard/NutrientsTab';
 import { BottomNavbar } from '../../components/layout/BottomNavbar';
 
 export function DashboardPage() {
     const [activeTab, setActiveTab] = useState('calories');
+    const navigate=useNavigate();
     const todaysMeals = [
     {
       id: 1,
@@ -83,7 +85,10 @@ export function DashboardPage() {
                            <h3 className="text-lg font-semibold text-gray-900">
                                Today's Meals
                            </h3>
-                           <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                           <button
+                            onClick={()=>navigate('/diary')}
+                            className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                           >
                                View All →
                            </button>
                        </div>

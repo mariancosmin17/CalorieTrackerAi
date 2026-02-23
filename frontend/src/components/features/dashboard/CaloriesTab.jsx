@@ -28,11 +28,11 @@ export function CaloriesTab(){
                           <p className="text-sm text-gray-900 font-medium mb-1">
                               Remaining
                           </p>
-                          <p className="text-2xl font-bold text-primary-700">
+                          <p className="text-2xl font-bold text-primary-600">
                               {caloriesRemaining} kcal
                           </p>
                       </div>
-                      <ArrowTrendingUpIcon className="w-8 h-8 text-primary-700"/>
+                      <ArrowTrendingUpIcon className="w-8 h-8 text-primary-600"/>
                   </div>
                </div>
            </div>

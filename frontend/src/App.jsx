@@ -9,6 +9,7 @@ import { BottomNavbar } from './components/layout/BottomNavbar';
 import { CaloriesTab } from './components/features/dashboard/CaloriesTab';
 import { NutrientsTab } from './components/features/dashboard/NutrientsTab';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
+import { DiaryPage } from './pages/dashboard/DiaryPage';
 
 function ProtectedRoute({children}){
     const {isLoggedIn,isLoading}=useAuth();
@@ -77,6 +78,14 @@ function App(){
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/diary"
+          element={
+            <ProtectedRoute>
+              <DiaryPage />
             </ProtectedRoute>
           }
         />
