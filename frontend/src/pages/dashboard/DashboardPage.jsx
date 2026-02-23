@@ -7,6 +7,8 @@ import { BottomNavbar } from '../../components/layout/BottomNavbar';
 export function DashboardPage() {
     const [activeTab, setActiveTab] = useState('calories');
     const navigate=useNavigate();
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedMeal, setSelectedMeal] = useState(null);
     const todaysMeals = [
     {
       id: 1,
@@ -30,6 +32,14 @@ export function DashboardPage() {
       calories: 150,
     },
     ];
+
+   const handleMealClick = (meal)=>{
+    navigate('/diary', {
+      state: {
+        openMealId: meal.id
+            }
+        });
+     };
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#0A1F44] via-[#1E3A5F] to-gray-100 pb-20">
@@ -101,6 +111,7 @@ export function DashboardPage() {
                                    todaysMeals.map((meal)=>(
                                        <div
                                         key={meal.id}
+                                        onClick={() => handleMealClick(meal)}
                                         className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
                                        >
                                         <div className="flex-1">

@@ -1,12 +1,16 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState,useEffect } from 'react';
+import { useNavigate,useLocation } from 'react-router-dom';
 import { ArrowLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { MealCard } from '../../components/features/diary/MealCard';
+import { EditMealModal } from '../../components/features/diary/EditMealModal';
 import { BottomNavbar } from '../../components/layout/BottomNavbar';
 
 export function DiaryPage(){
     const navigate=useNavigate();
+    const location = useLocation();
     const [searchQuery,setSearchQuery]=useState('');
+    const [isEditModalOpen,setIsEditModalOpen]=useState(false);
+    const [selectedMeal,setSelectedMeal]=useState(null);
     const calorieGoal=2000;
     const meals = [
     {
@@ -44,12 +48,14 @@ export function DiaryPage(){
   ];
   const totalCalories = meals.reduce((sum, meal) => sum + meal.calories, 0);
   const remainingCalories = calorieGoal - totalCalories;
+
   const mealsByType={
       Breakfast:meals.filter(m=>m.type==='Breakfast'),
       Lunch:meals.filter(m=>m.type==='Lunch'),
       Snack:meals.filter(m=>m.type==='Snack'),
       Dinner:meals.filter(m=>m.type==='Dinner'),
       };
+
   const filteredMealsByType = Object.entries(mealsByType).reduce((acc, [type, typeMeals]) => {
     const filtered = typeMeals.filter(meal =>
       meal.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -64,9 +70,32 @@ export function DiaryPage(){
       navigate('/dashboard');
       };
 
-  const handleEditMeal=()=>{
-      console.log('Edit meal:', meal);
+  const handleEditMeal=(meal)=>{
+      setSelectedMeal(meal);
+      setIsEditModalOpen(true);
       };
+
+  const handleSaveMeal=(updatedMeal)=>{
+      console.log('Save meal:', updatedMeal);
+      setIsEditModalOpen(false);
+      };
+
+  const handleDeleteMeal=(mealId)=>{
+      console.log('Delete meal:', mealId);
+      setIsEditModalOpen(false);
+      };
+
+  useEffect(() =>{
+    const openMealId=location.state?.openMealId;
+    if (openMealId) {
+      const meal=meals.find(m => m.id===openMealId);
+      if (meal) {
+        setSelectedMeal(meal);
+        setIsEditModalOpen(true);
+      }
+      window.history.replaceState({},document.title);
+    }
+  },[location.state]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0A1F44] via-[#1E3A5F] to-gray-100 pb-20">
@@ -91,8 +120,8 @@ export function DiaryPage(){
             })}
           </p>
         </div>
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
-          <div className="p-4 bg-white">
+        <div className="bg-blue-50  rounded-2xl shadow-lg overflow-hidden mb-6">
+          <div className="p-4 bg-blue-50 ">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-900 font-medium mb-1">
@@ -152,6 +181,13 @@ export function DiaryPage(){
           )}
         </div>
       </div>
+      <EditMealModal
+        isOpen={isEditModalOpen}
+        onClose={()=>setIsEditModalOpen(false)}
+        meal={selectedMeal}
+        onSave={handleSaveMeal}
+        onDelete={handleDeleteMeal}
+      />
       <BottomNavbar />
     </div>
   );

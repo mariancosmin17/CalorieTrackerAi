@@ -132,9 +132,6 @@ export function BottomNavbar(){
                                     >
                                         {item.label}
                                     </span>
-                                    {active &&(
-                                        <div className="absolute bottom-0 w-1 h-1 bg-primary-600 rounded-full"/>
-                                        )}
                                 </button>
                                 );
                         }))}
