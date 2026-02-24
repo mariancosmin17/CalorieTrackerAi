@@ -113,7 +113,7 @@ export function DashboardPage() {
                                        <div
                                         key={meal.id}
                                         onClick={() => handleMealClick(meal)}
-                                        className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                                        className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
                                        >
                                         <div className="flex-1">
                                             <p className="font-medium text-gray-900">

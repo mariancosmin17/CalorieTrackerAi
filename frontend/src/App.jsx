@@ -10,6 +10,7 @@ import { CaloriesTab } from './components/features/dashboard/CaloriesTab';
 import { NutrientsTab } from './components/features/dashboard/NutrientsTab';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { DiaryPage } from './pages/dashboard/DiaryPage';
+import { SettingsPage } from './pages/dashboard/SettingsPage';
 
 function ProtectedRoute({children}){
     const {isLoggedIn,isLoading}=useAuth();
@@ -86,6 +87,14 @@ function App(){
           element={
             <ProtectedRoute>
               <DiaryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
             </ProtectedRoute>
           }
         />
