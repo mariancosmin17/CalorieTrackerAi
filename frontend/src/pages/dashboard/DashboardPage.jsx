@@ -16,6 +16,7 @@ export function DashboardPage() {
       type: 'Breakfast',
       time: '08:30',
       calories: 320,
+      created_at: '2026-02-24',
     },
     {
       id: 2,
