@@ -4,6 +4,9 @@ from PIL import Image
 from sqlalchemy.orm import Session
 from fastapi. middleware.cors import CORSMiddleware
 from datetime import datetime,timedelta
+from pydantic import BaseModel
+from typing import List
+from datetime import date as date_type
 import os
 import uuid
 import io
@@ -344,6 +347,7 @@ async def predict(file: UploadFile=File(...),db:Session=Depends(get_db),current_
                 )
             final_result=result["final_result"]
             final_foods=final_result["final_foods"]
+            foods_list=[]
             for food_item in final_foods:
                 food_name=food_item['name']
                 nutrition=food_item.get('nutrition',{})
@@ -357,22 +361,18 @@ async def predict(file: UploadFile=File(...),db:Session=Depends(get_db),current_
                 protein_g=macros.get('protein_g',0.0) or 0.0
                 carbs_g=macros.get('carbs_g',0.0) or 0.0
                 fat_g=macros.get('fat_g',0.0) or 0.0
-                history=History(label=food_name,
-                                grams=estimated_grams,
-                                calories=estimated_calories,
-                                protein_g=protein_g,
-                                carbs_g=carbs_g,
-                                fat_g=fat_g,
-                                user_id=current_user.id)
-                db.add(history)
-            db.commit()
+                foods_list.append({"name":food_name,
+                                "grams":estimated_grams,
+                                "calories":estimated_calories,
+                                "protein_g":protein_g,
+                                "carbs_g":carbs_g,
+                                "fat_g":fat_g})
+
             return {
                 "success":True,
-                "foods_detected":final_foods,
+                "foods_detected":foods_list,
                 "total_nutrition":final_result['total_nutrition'],
-                "reconciliation_info":final_result['reconciliation_summary'],
-                "history_saved":True,
-                "items_saved":len(final_foods)
+                "reconciliation_info":final_result['reconciliation_summary']
             }
         except HTTPException:
             raise
@@ -393,7 +393,91 @@ async def predict(file: UploadFile=File(...),db:Session=Depends(get_db),current_
             detail=f"Server error: {str(e)}"
         )
 
+class FoodItemInput(BaseModel):
+    name:str
+    grams:int
+    calories:float
+    protein_g:float
+    carbs_g:float
+    fat_g:float
+
+class SaveMealRequest(BaseModel):
+    foods:List[FoodItemInput]
+    meal_type:str
+    meal_time:str
+    log_date:str
+
+@app.post("/history/save")
+def save_meal(request:SaveMealRequest,db:Session=Depends(get_db),current_user:User=Depends(get_current_user)):
+    try:
+        valid_meal_types=["Breakfast","Lunch","Snack","Dinner"]
+        if request.meal_type not in valid_meal_types:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid meal_type. Must be one of: {', '.join(valid_meal_types)}"
+            )
+        try:
+            log_date = datetime.fromisoformat(request.log_date)
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid log_date format. Use ISO format: YYYY-MM-DD"
+            )
+        saved_items=[]
+        for food in request.foods:
+            history=History(
+                label=food.name,
+                grams=food.grams,
+                calories=food.calories,
+                protein_g=food.protein_g,
+                carbs_g=food.carbs_g,
+                fat_g=food.fat_g,
+                meal_type=request.meal_type,
+                meal_time=request.meal_time,
+                log_date=log_date,
+                user_id=current_user.id
+            )
+            db.add(history)
+            saved_items.append({
+                "name": food.name,
+                "grams": food.grams,
+                "calories": food.calories
+            })
+        db.commit()
+        return {
+            "success": True,
+            "message": f"Meal logged successfully ({len(saved_items)} items)",
+            "meal_type": request.meal_type,
+            "meal_time": request.meal_time,
+            "log_date": request.log_date,
+            "items_saved": len(saved_items),
+            "foods": saved_items
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to save meal: {str(e)}"
+        )
+
 @app.get("/history")
-def get_history(db:Session=Depends(get_db),current_user=Depends(get_current_user)):
-    history=(db.query(History).filter(History.user_id==current_user.id).order_by(History.created_at.desc()).all())
-    return {"history":history}
+def get_history(date:str=None,db:Session=Depends(get_db),current_user=Depends(get_current_user)):
+    query=db.query(History).filter(History.user_id==current_user.id)
+    if date:
+        try:
+            target_date=datetime.fromisoformat(date)
+            query=query.filter(db.func.date(History.log_date)==target_date.date())
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid date format. Use YYYY-MM-DD"
+            )
+    history = query.order_by(History.created_at.desc()).all()
+    return {
+        "success": True,
+        "count": len(history),
+        "date_filter": date if date else "all",
+        "history": history
+    }

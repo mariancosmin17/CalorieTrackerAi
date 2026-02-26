@@ -25,6 +25,9 @@ class History(Base):
     carbs_g=Column(Float,nullable=False,default=0.0)
     fat_g=Column(Float,nullable=False,default=0.0)
 
+    meal_type = Column(String, nullable=True)
+    meal_time = Column(String, nullable=True)
+    log_date = Column(DateTime, nullable=True)
     created_at=Column(DateTime,default=datetime.utcnow)
     user_id=Column(Integer,ForeignKey("users.id"))
     user=relationship("User",back_populates="history")
