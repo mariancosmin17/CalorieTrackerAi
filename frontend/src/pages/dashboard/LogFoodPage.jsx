@@ -8,6 +8,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { BottomNavbar } from '../../components/layout/BottomNavbar';
 import { analyzeFoodImage } from '../../api/foodApi';
+import { DetectedFoodsModal } from '../../components/features/logfood/DetectedFoodsModal';
 
 export function LogFoodPage(){
     const navigate=useNavigate();
@@ -18,69 +19,71 @@ export function LogFoodPage(){
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [error, setError] = useState(null);
     const [detectedFoods, setDetectedFoods] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const handleBack=()=>
-    {
+    const handleBack=()=>{
         navigate('/dashboard');
-        };
+    };
 
     const handleUploadClick=()=>{
         fileInputRef.current?.click();
-        };
+    };
 
     const handleFileSelect=(e)=>{
         const file=e.target.files[0];
         if(file){
             setSelectedImage(file);
-
-        const reader=new FileReader();
-        reader.onloadend=()=>{
-            setImagePreview(reader.result);
+            const reader=new FileReader();
+            reader.onloadend=()=>{
+                setImagePreview(reader.result);
             };
-        reader.readAsDataURL(file);
+            reader.readAsDataURL(file);
         }
-        };
+    };
+
     const handleRemoveImage=()=>{
         setImagePreview(null);
         setSelectedImage(null);
         if(fileInputRef.current){
             fileInputRef.current.value='';
-            }
-        };
+        }
+    };
 
     const handleTakePhoto = () => {
         alert('Camera feature coming soon!');
     };
 
     const handleAnalyze = async () => {
-        if(!selectedImage)
-        {
+        if(!selectedImage){
             setError('Please select an image first');
             return;
-            }
+        }
         setIsAnalyzing(true);
         setError(null);
         try{
             const response=await analyzeFoodImage(selectedImage);
             console.log('RAW response:', response);
-            console.log('response type:', typeof response);
-            console.log('response.success:', response.success);
-            console.log('response.foods_detected:', response.foods_detected);
 
             if (response && response.success && response.foods_detected) {
-              setDetectedFoods(response.foods_detected);
-              alert(`Success! Detected ${response.foods_detected.length} foods`);
+                setDetectedFoods(response.foods_detected);
+                setIsModalOpen(true);
             } else {
-              console.error('Invalid response structure:', response);
-              throw new Error('Analysis failed: Invalid response structure');
+                console.error('Invalid response structure:', response);
+                throw new Error('Analysis failed: Invalid response structure');
             }
         }
         catch(err){
             setError(err.message || 'Failed to analyze image. Please try again.');
-            }
+        }
         finally{
             setIsAnalyzing(false);
-            }
+        }
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setDetectedFoods([]);
+        handleRemoveImage();
     };
 
     return(
@@ -102,18 +105,20 @@ export function LogFoodPage(){
                        Upload a photo to analyze your meal
                    </p>
                 </div>
+
                 {error && (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                         <p className="text-red-600 text-sm">{error}</p>
                     </div>
                 )}
+
                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
-                    <div className="px-5 py-4 border-b border-gray-200">
+                    <div className="px-5 py-4 pb-2">
                         <h2 className="text-lg font-semibold text-gray-900">
                             Analyze Food Photo
                         </h2>
                     </div>
-                    <div className="p-5">
+                    <div className="px-5 pt-2 pb-5">
                         <input
                             ref={fileInputRef}
                             type="file"
@@ -121,7 +126,7 @@ export function LogFoodPage(){
                             onChange={handleFileSelect}
                             className="hidden"
                         />
-                        {imagePreview ?(
+                        {imagePreview ? (
                             <div className="relative mb-4">
                                 <img
                                     src={imagePreview}
@@ -135,7 +140,7 @@ export function LogFoodPage(){
                                     <XMarkIcon className="w-5 h-5 text-gray-600" />
                                 </button>
                             </div>
-                            ) : (
+                        ) : (
                             <button
                                 onClick={handleUploadClick}
                                 className="w-full border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-primary-500 transition-colors mb-4"
@@ -148,70 +153,45 @@ export function LogFoodPage(){
                                     PNG, JPG, GIF, or BMP (max 10MB)
                                 </p>
                             </button>
-                                )}
+                        )}
+
                         {imagePreview && (
                             <button
                                 onClick={handleAnalyze}
                                 disabled={isAnalyzing}
-                                className="w-full py-3 px-6 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold mb-3"
+                                className="w-full py-3 px-6 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold mb-3 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {isAnalyzing ? 'Analyzing...' : 'Analyze Photo'}
+                                {isAnalyzing ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                        </svg>
+                                        Analyzing...
+                                    </span>
+                                ) : 'Analyze Photo'}
                             </button>
                         )}
+
                         <button
                             onClick={handleTakePhoto}
                             className="w-full py-3 px-6 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold flex items-center justify-center gap-2"
                         >
-                        <CameraIcon className="w-5 h-5" />
+                            <CameraIcon className="w-5 h-5" />
                             Take Live Picture
                         </button>
                     </div>
                 </div>
-                {detectedFoods.length>0 && (
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
-                        <div className="px-5 py-4 border-b border-gray-200">
-                            <h2 className="text-lg font-semibold text-gray-900">
-                                Detected Foods ({detectedFoods.length})
-                            </h2>
-                        </div>
-                        <div className="p-5">
-                            <div className="space-y-3">
-                                {detectedFoods.map((food,index)=>(
-                                    <div
-                                        key={index}
-                                        className="border border-gray-200 rounded-lg p-4"
-                                    >
-                                     <div className="flex items-start justify-between mb-2">
-                                        <div className="flex-1">
-                                            <h3 className="font-semibold text-gray-900">
-                                                {food.name}
-                                            </h3>
-                                            <p className="text-sm text-gray-500">
-                                                {food.grams}g • {Math.round(food.calories)} kcal
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={() => alert('Delete functionality coming next!')}
-                                            className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
-                                        >
-                                            <XMarkIcon className="w-5 h-5" />
-                                        </button>
-                                     </div>
-                                     <div className="flex items-center gap-3 text-xs text-gray-600">
-                                        <span>P: {Math.round(food.protein_g)}g</span>
-                                        <span>•</span>
-                                        <span>C: {Math.round(food.carbs_g)}g</span>
-                                        <span>•</span>
-                                        <span>F: {Math.round(food.fat_g)}g</span>
-                                     </div>
-                                    </div>
-                                    ))}
-                            </div>
-                        </div>
-                    </div>
-                    )}
             </div>
+
+            <DetectedFoodsModal
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+                foods={detectedFoods}
+                setFoods={setDetectedFoods}
+            />
+
             <BottomNavbar/>
         </div>
-        );
-    }
+    );
+}
