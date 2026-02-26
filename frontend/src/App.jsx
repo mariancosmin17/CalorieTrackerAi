@@ -11,6 +11,7 @@ import { NutrientsTab } from './components/features/dashboard/NutrientsTab';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { DiaryPage } from './pages/dashboard/DiaryPage';
 import { SettingsPage } from './pages/dashboard/SettingsPage';
+import { LogFoodPage } from './pages/dashboard/LogFoodPage';
 
 function ProtectedRoute({children}){
     const {isLoggedIn,isLoading}=useAuth();
@@ -95,6 +96,14 @@ function App(){
           element={
             <ProtectedRoute>
               <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/log-food"
+          element={
+            <ProtectedRoute>
+              <LogFoodPage />
             </ProtectedRoute>
           }
         />
