@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
   UPDATE_PROFILE: '/profile',
   PREDICT: '/predict',
   HISTORY: '/history',
+  HISTORY_SAVE: '/history/save',
 };
 
 export const STORAGE_KEYS = {
