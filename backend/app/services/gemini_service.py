@@ -5,7 +5,10 @@ from typing import List, Dict, Optional
 from PIL import Image
 from google import genai
 from dotenv import load_dotenv
+import logging
 
+logging.basicConfig(level=logging.INFO)
+logger=logging.getLogger(__name__)
 load_dotenv()
 
 class GeminiNutritionService:
@@ -108,6 +111,7 @@ class GeminiNutritionService:
         - nutrition_estimates should include ALL final items (verified + corrected + additional)
         - If confidence is low, mark it explicitly
         - Provide brief notes for corrections/additions
+        - For confirmed foods keep the original name that you received,use that one for nutrition_estimates
         """
         return prompt
     def analyze_image(self,image_path:str,yolo_detections:List[str])->Optional[Dict]:
@@ -121,6 +125,7 @@ class GeminiNutritionService:
                         'max_output_tokens':4096}
             )
             result_text=response.text
+            logger.info(response.text)
             parsed=self._parse_json_response(result_text)
             return parsed
         except Exception as e:
