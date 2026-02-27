@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { XMarkIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { EditMealModal } from '../diary/EditMealModal';
+const MEAL_TYPES=['Breakfast','Lunch','Snack','Dinner'];
 
-export function DetectedFoodsModal({ isOpen, onClose, foods, setFoods }) {
-    const [editingIndex, setEditingIndex] = useState(null);
-    const [editGrams, setEditGrams] = useState('');
+export function DetectedFoodsModal({ isOpen,onClose,foods,setFoods,onLogFood,isLogging }) {
+    const [editingFood, setEditingFood] = useState(null);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [mealType,setMealType]=useState('');
+    const [mealTypeError,setMealTypeError]=useState('');
 
     if (!isOpen) return null;
 
@@ -16,38 +20,43 @@ export function DetectedFoodsModal({ isOpen, onClose, foods, setFoods }) {
         setFoods(prev => prev.filter((_, i) => i !== index));
     };
 
-    const handleStartEdit = (index) => {
-        setEditingIndex(index);
-        setEditGrams(foods[index].grams.toString());
-    };
-
-    const handleSaveEdit = (index) => {
-        const newGrams = parseInt(editGrams) || 0;
-        if (newGrams <= 0) {
-            setEditingIndex(null);
-            return;
+    const handleFoodClick=(index)=>{
+        setEditingFood({...foods[index],_index:index});
+        setIsEditOpen(true);
         }
-        const originalFood = foods[index];
-        const ratio = newGrams / originalFood.grams;
 
-        setFoods(prev => prev.map((food, i) => {
-            if (i !== index) return food;
-            return {
+    const handleEditSave=(updatedMeal)=>{
+        const index=updatedMeal._index;
+        setFoods(prev=>prev.map((food,i)=>{
+            if(i!=index) return food;
+            return{
                 ...food,
-                grams: newGrams,
-                calories: Math.round(food.calories * ratio * 100) / 100,
-                protein_g: Math.round(food.protein_g * ratio * 100) / 100,
-                carbs_g: Math.round(food.carbs_g * ratio * 100) / 100,
-                fat_g: Math.round(food.fat_g * ratio * 100) / 100,
-            };
-        }));
-        setEditingIndex(null);
-    };
+                grams:updatedMeal.grams,
+                calories:updatedMeal.calories,
+                protein_g:updatedMeal.protein_g,
+                carbs_g:updatedMeal.carbs_g,
+                fat_g:updatedMeal.fat_g,
+                };
+            }));
+        setIsEditOpen(false);
+        setEditingFood(null);
+        }
 
-    const handleCancelEdit = () => {
-        setEditingIndex(null);
-        setEditGrams('');
-    };
+    const handleEditDelete=(id)=>{
+        const index=editingFood._index;
+        setFoods(prev=>prev.filter((_,i)=>i!==index));
+        setIsEditOpen(false);
+        setEditingFood(null);
+        }
+
+    const handleLogFood=()=>{
+        if(!mealType){
+            setMealTypeError('Please select a meal type');
+            return;
+            }
+        setMealTypeError('');
+        onLogFood(mealType);
+        };
 
     const handleBackdropClick = (e) => {
         if (e.target === e.currentTarget) {
@@ -55,129 +64,125 @@ export function DetectedFoodsModal({ isOpen, onClose, foods, setFoods }) {
         }
     };
 
-    return (
-        <div
-            className="fixed inset-0 z-50 flex items-end justify-center bg-black/50"
-            onClick={handleBackdropClick}
-        >
-            <div className="bg-white w-full max-w-2xl rounded-t-3xl shadow-2xl max-h-[90vh] flex flex-col animate-slide-up">
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-gray-900">
-                        Detected Foods
-                    </h2>
-                    <button
-                        onClick={onClose}
-                        className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                    >
-                        <XMarkIcon className="w-6 h-6 text-gray-500" />
-                    </button>
-                </div>
-
-                {/* Scrollable content */}
-                <div className="flex-1 overflow-y-auto px-6 py-4">
-                    {/* Totals summary */}
-                    <div className="bg-blue-50 rounded-xl p-4 mb-4">
-                        <p className="text-sm text-gray-600 font-medium mb-1">Total</p>
-                        <p className="text-2xl font-bold text-primary-600 mb-2">
-                            {Math.round(totalCalories)} kcal
-                        </p>
-                        <div className="flex items-center gap-4 text-sm text-gray-600">
-                            <span>P: <strong>{Math.round(totalProtein)}g</strong></span>
-                            <span>C: <strong>{Math.round(totalCarbs)}g</strong></span>
-                            <span>F: <strong>{Math.round(totalFat)}g</strong></span>
-                        </div>
+     return (
+        <>
+            <div
+                className="fixed inset-0 z-50 flex items-end justify-center bg-black/50"
+                onClick={handleBackdropClick}
+            >
+                <div className="bg-white w-full max-w-2xl rounded-t-3xl shadow-2xl max-h-[90vh] flex flex-col animate-slide-up">
+                    <div className="flex items-center justify-between px-6 py-4">
+                        <h2 className="text-xl font-bold text-gray-900">
+                            Detected Foods
+                        </h2>
+                        <button
+                            onClick={onClose}
+                            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                            <XMarkIcon className="w-6 h-6 text-gray-500" />
+                        </button>
                     </div>
-
-                    {/* Foods list */}
-                    {foods.length === 0 ? (
-                        <div className="text-center py-8">
-                            <p className="text-gray-400">All foods removed</p>
+                    <div className="flex-1 overflow-y-auto px-6 pb-4">
+                        <div className="bg-blue-50 rounded-xl p-4 mb-4">
+                            <p className="text-sm text-gray-600 font-medium mb-1">Total</p>
+                            <p className="text-2xl font-bold text-primary-600 mb-2">
+                                {Math.round(totalCalories)} kcal
+                            </p>
+                            <div className="flex items-center gap-4 text-sm text-gray-600">
+                                <span>P: <strong>{Math.round(totalProtein)}g</strong></span>
+                                <span>C: <strong>{Math.round(totalCarbs)}g</strong></span>
+                                <span>F: <strong>{Math.round(totalFat)}g</strong></span>
+                            </div>
                         </div>
-                    ) : (
-                        <div className="space-y-3 mb-4">
-                            {foods.map((food, index) => (
-                                <div
-                                    key={index}
-                                    className="border border-gray-200 rounded-xl p-4"
-                                >
-                                    <div className="flex items-start justify-between mb-2">
+                        {foods.length===0 ? (
+                            <div className="text-center py-8">
+                                <p className="text-gray-400">All foods removed</p>
+                            </div>
+                        ) : (
+                            <div className="mb-4">
+                                {foods.map((food,index)=>(
+                                    <div
+                                        key={index}
+                                        onClick={()=>handleFoodClick(index)}
+                                        className="flex items-center justify-between rounded-xl px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                                    >
                                         <div className="flex-1">
                                             <h3 className="font-semibold text-gray-900">
                                                 {food.name}
                                             </h3>
-                                            {editingIndex === index ? (
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <input
-                                                        type="number"
-                                                        value={editGrams}
-                                                        onChange={(e) => setEditGrams(e.target.value)}
-                                                        className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-                                                        min="1"
-                                                        autoFocus
-                                                    />
-                                                    <span className="text-sm text-gray-500">g</span>
-                                                    <button
-                                                        onClick={() => handleSaveEdit(index)}
-                                                        className="text-xs px-2 py-1 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                                                    >
-                                                        Save
-                                                    </button>
-                                                    <button
-                                                        onClick={handleCancelEdit}
-                                                        className="text-xs px-2 py-1 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300"
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <p className="text-sm text-primary-600 font-medium">
-                                                    {food.grams}g • {Math.round(food.calories)} kcal
-                                                </p>
-                                            )}
+                                            <p className="text-sm text-primary-600 font-medium">
+                                                {food.grams}g • {Math.round(food.calories)} kcal
+                                            </p>
+                                            <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
+                                                <span>P: {Math.round(food.protein_g)}g</span>
+                                                <span>C: {Math.round(food.carbs_g)}g</span>
+                                                <span>F: {Math.round(food.fat_g)}g</span>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-1">
-                                            {editingIndex !== index && (
-                                                <button
-                                                    onClick={() => handleStartEdit(index)}
-                                                    className="p-1.5 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                                                    title="Edit grams"
-                                                >
-                                                    <PencilIcon className="w-4 h-4" />
-                                                </button>
-                                            )}
-                                            <button
-                                                onClick={() => handleDeleteFood(index)}
-                                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                                title="Remove food"
-                                            >
-                                                <XMarkIcon className="w-5 h-5" />
-                                            </button>
-                                        </div>
+                                        <XMarkIcon
+                                            className="w-5 h-5 text-red-400 hover:text-red-600 flex-shrink-0 ml-2"
+                                            onClick={(e)=>{
+                                                e.stopPropagation();
+                                                setFoods(prev=>prev.filter((_,i)=>i!==index));
+                                            }}
+                                        />
                                     </div>
-                                    {editingIndex !== index && (
-                                        <div className="flex items-center gap-3 text-xs text-gray-500">
-                                            <span>P: {Math.round(food.protein_g)}g</span>
-                                            <span>C: {Math.round(food.carbs_g)}g</span>
-                                            <span>F: {Math.round(food.fat_g)}g</span>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
+                                ))}
+                            </div>
+                        )}
+                        <div className="mb-2">
+                            <label className="block text-sm font-semibold text-gray-900 mb-2">
+                                Meal Type <span className="text-red-500">*</span>
+                            </label>
+                            <div className="grid grid-cols-4 gap-2">
+                                {MEAL_TYPES.map((type)=>(
+                                    <button
+                                        key={type}
+                                        onClick={()=>{
+                                            setMealType(type);
+                                            setMealTypeError('');
+                                        }}
+                                        className={`py-2.5 px-3 rounded-xl text-sm font-medium transition-all
+                                            ${mealType===type
+                                                ? 'bg-primary-600 text-white shadow-sm'
+                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                            }`}
+                                    >
+                                        {type}
+                                    </button>
+                                ))}
+                            </div>
+                            {mealTypeError && (
+                                <p className="text-red-500 text-xs mt-1">{mealTypeError}</p>
+                            )}
                         </div>
-                    )}
-                </div>
-
-                {/* Footer buttons */}
-                <div className="px-6 py-4 border-t border-gray-200 bg-white rounded-b-3xl">
-                    <button
-                        onClick={onClose}
-                        className="w-full py-3 px-4 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
-                    >
-                        Cancel
-                    </button>
+                    </div>
+                    <div className="px-6 pt-4 pb-6 border-t border-gray-200 bg-white">
+                        <div className="flex gap-3">
+                            <button
+                                onClick={onClose}
+                                className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleLogFood}
+                                disabled={foods.length===0||isLogging}
+                                className="flex-1 py-3 px-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isLogging ? 'Saving...' : 'Log Food'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+            <EditMealModal
+                isOpen={isEditOpen}
+                onClose={()=>{setIsEditOpen(false);setEditingFood(null);}}
+                meal={editingFood}
+                onSave={handleEditSave}
+                onDelete={handleEditDelete}
+            />
+        </>
     );
 }

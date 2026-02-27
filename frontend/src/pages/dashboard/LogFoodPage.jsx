@@ -7,7 +7,7 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { BottomNavbar } from '../../components/layout/BottomNavbar';
-import { analyzeFoodImage } from '../../api/foodApi';
+import { analyzeFoodImage,SaveMealToHistory } from '../../api/foodApi';
 import { DetectedFoodsModal } from '../../components/features/logfood/DetectedFoodsModal';
 
 export function LogFoodPage(){
@@ -20,6 +20,7 @@ export function LogFoodPage(){
     const [error, setError] = useState(null);
     const [detectedFoods, setDetectedFoods] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isLogging,setIsLogging]=useState(false);
 
     const handleBack=()=>{
         navigate('/dashboard');
@@ -79,6 +80,42 @@ export function LogFoodPage(){
             setIsAnalyzing(false);
         }
     };
+
+    const handleLogFood=async (mealType)=>{
+        if(detectedFoods.length==0)
+        return;
+        setIsLogging(true);
+        try{
+            const now=new Date();
+            const mealTime=now.toLocaleTimeString('en-GB',{
+                hour:'2-digit',
+                minute:'2-digit'
+            });
+            const logDate=now.toISOString().split('T')[0];
+            const requestData={
+                foods:detectedFoods,
+                meal_type:mealType,
+                meal_time:mealTime,
+                log_date:logDate,
+                };
+            const response=await SaveMealToHistory(requestData);
+            if(response&&response.success){
+                setIsModalOpen(false);
+                setDetectedFoods([]);
+                handleRemoveImage();
+                navigate('/log-food');
+                }
+            else{
+                throw new Error('Failed to save meal');
+                }
+        }
+        catch(err){
+            setError(err.message||'Failed to log food. Please try again.');
+            }
+        finally{
+            setIsLogging(false);
+            }
+        };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
@@ -189,6 +226,8 @@ export function LogFoodPage(){
                 onClose={handleCloseModal}
                 foods={detectedFoods}
                 setFoods={setDetectedFoods}
+                onLogFood={handleLogFood}
+                isLogging={isLogging}
             />
 
             <BottomNavbar/>
