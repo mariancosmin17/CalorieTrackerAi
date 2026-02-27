@@ -34,7 +34,7 @@ export function SettingsPage() {
           </h1>
         </div>
         <div className="bg-white rounded-2xl shadow-lg mb-4 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-200">
+          <div className="px-5 py-4 pb-2">
             <h2 className="text-lg font-semibold text-gray-900">
               Profile
             </h2>
@@ -61,7 +61,7 @@ export function SettingsPage() {
           </div>
         </div>
         <div className="bg-white rounded-2xl shadow-lg mb-4 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-200">
+          <div className="px-5 py-4 pb-2">
             <h2 className="text-lg font-semibold text-gray-900">
               Goals
             </h2>
@@ -98,7 +98,7 @@ export function SettingsPage() {
           </div>
         </div>
         <div className="bg-white rounded-2xl shadow-lg mb-4 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-200">
+          <div className="px-5 py-4 pb-2">
             <h2 className="text-lg font-semibold text-gray-900">
               Preferences
             </h2>

@@ -67,10 +67,10 @@ export function DetectedFoodsModal({ isOpen,onClose,foods,setFoods,onLogFood,isL
      return (
         <>
             <div
-                className="fixed inset-0 z-50 flex items-end justify-center bg-black/50"
+                className={`fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 ${isEditOpen ? 'hidden' : ''}`}
                 onClick={handleBackdropClick}
             >
-                <div className="bg-white w-full max-w-2xl rounded-t-3xl shadow-2xl max-h-[90vh] flex flex-col animate-slide-up">
+                <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl max-h-[85vh] flex flex-col">
                     <div className="flex items-center justify-between px-6 py-4">
                         <h2 className="text-xl font-bold text-gray-900">
                             Detected Foods
@@ -104,14 +104,16 @@ export function DetectedFoodsModal({ isOpen,onClose,foods,setFoods,onLogFood,isL
                                     <div
                                         key={index}
                                         onClick={()=>handleFoodClick(index)}
-                                        className="flex items-center justify-between rounded-xl px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                                        className="flex items-center justify-between rounded-xl px-4 py-3 hover:bg-gray-100 transition-colors cursor-pointer"
                                     >
                                         <div className="flex-1">
                                             <h3 className="font-semibold text-gray-900">
                                                 {food.name}
                                             </h3>
-                                            <p className="text-sm text-primary-600 font-medium">
-                                                {food.grams}g • {Math.round(food.calories)} kcal
+                                            <p className="text-sm text-gray-600">
+                                               <span className="font-medium">{food.grams}g</span>
+                                               {' • '}
+                                               <span className="font-bold text-primary-600">{Math.round(food.calories)} kcal </span>
                                             </p>
                                             <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
                                                 <span>P: {Math.round(food.protein_g)}g</span>

@@ -19,8 +19,8 @@ export function EditMealModal({isOpen,onClose,meal,onSave,onDelete}){
         return{
             calories:Math.round(meal.calories*ratio),
             protein:Math.round((meal.protein_g||0)*ratio),
-            carbs:Math.round((meal.carbs||0)*ratio),
-            fat:Math.round((meal.fat||0)*ratio),
+            carbs:Math.round((meal.carbs_g||0)*ratio),
+            fat:Math.round((meal.fat_g||0)*ratio),
             };
         };
     const nutrition=calculateNutrition();
