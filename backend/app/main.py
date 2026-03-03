@@ -2,6 +2,7 @@ from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException, sta
 from fastapi.security import OAuth2PasswordBearer
 from PIL import Image
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from fastapi. middleware.cors import CORSMiddleware
 from datetime import datetime,timedelta
 from pydantic import BaseModel
@@ -468,7 +469,7 @@ def get_history(date:str=None,db:Session=Depends(get_db),current_user=Depends(ge
     if date:
         try:
             target_date=datetime.fromisoformat(date)
-            query=query.filter(db.func.date(History.log_date)==target_date.date())
+            query=query.filter(func.date(History.log_date)==target_date.date())
         except ValueError:
             raise HTTPException(
                 status_code=400,
@@ -481,3 +482,48 @@ def get_history(date:str=None,db:Session=Depends(get_db),current_user=Depends(ge
         "date_filter": date if date else "all",
         "history": history
     }
+
+class UpdateMealRequest(BaseModel):
+    grams:     int
+    calories:  float
+    protein_g: float
+    carbs_g:   float
+    fat_g:     float
+
+@app.put("/history/item/{meal_id}")
+def update_meal(meal_id:int,request:UpdateMealRequest,db:Session=Depends(get_db),current_user: User = Depends(get_current_user)):
+    meal=db.query(History).filter(History.id==meal_id,History.user_id==current_user.id).first()
+    if not meal:
+        raise HTTPException(
+            status_code=404,
+            detail="Meal not found"
+        )
+    meal.grams = request.grams
+    meal.calories = request.calories
+    meal.protein_g = request.protein_g
+    meal.carbs_g = request.carbs_g
+    meal.fat_g = request.fat_g
+    db.commit()
+    db.refresh(meal)
+    return {
+        "success": True,
+        "message": "Meal updated successfully",
+        "id": meal.id
+    }
+
+@app.delete("/history/item/{meal_id}")
+def update_meal(meal_id:int,db:Session=Depends(get_db),current_user: User = Depends(get_current_user)):
+    meal = db.query(History).filter(History.id == meal_id, History.user_id == current_user.id).first()
+    if not meal:
+        raise HTTPException(
+            status_code=404,
+            detail="Meal not found"
+        )
+    db.delete(meal)
+    db.commit()
+    return {
+        "success":True,
+        "message":"Meal deleted successfully",
+        "id":meal_id
+    }
+
