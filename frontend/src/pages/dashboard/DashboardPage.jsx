@@ -1,40 +1,65 @@
-import { useState } from 'react';
+import { useState,useEffect,useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CaloriesTab } from '../../components/features/dashboard/CaloriesTab';
 import { NutrientsTab } from '../../components/features/dashboard/NutrientsTab';
 import { BottomNavbar } from '../../components/layout/BottomNavbar';
+import { getFoodHistory } from '../../api/foodApi';
 
 export function DashboardPage() {
+
     const [activeTab, setActiveTab] = useState('calories');
     const navigate=useNavigate();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedMeal, setSelectedMeal] = useState(null);
-    const todaysMeals = [
-    {
-      id: 1,
-      name: 'Carnati',
-      type: 'Breakfast',
-      time: '08:30',
-      calories: 320,
-      created_at: '2026-02-24',
-    },
-    {
-      id: 2,
-      name: 'Piept de pui cu orez',
-      type: 'Lunch',
-      time: '13:00',
-      calories: 450,
-    },
-    {
-      id: 3,
-      name: 'Iaurt grecesc',
-      type: 'Snack',
-      time: '16:30',
-      calories: 150,
-    },
-    ];
+    const [todaysMeals,setTodaysMeals]=useState([]);
+    const [isLoading,setIsLoading]=useState(null);
 
-   const handleMealClick = (meal)=>{
+    const calorieGoal = 2000;
+    const proteinGoal = 150;
+    const carbsGoal   = 250;
+    const fatGoal     = 65;
+
+    const fetchTodaysMeals = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const response = await getFoodHistory(todayStr);
+
+            if (response && response.history) {
+                const normalized = response.history.map(item => ({
+                    id:       item.id,
+                    name:     item.label,
+                    type:     item.meal_type,
+                    time:     item.meal_time,
+                    calories: item.calories,
+                    protein_g: item.protein_g,
+                    carbs_g:   item.carbs_g,
+                    fat_g:     item.fat_g,
+                }));
+                setTodaysMeals(normalized);
+            } else {
+                setTodaysMeals([]);
+            }
+        } catch (err) {
+            console.error('Failed to fetch today meals:', err);
+            setTodaysMeals([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchTodaysMeals();
+    }, [fetchTodaysMeals]);
+
+    const caloriesConsumed = todaysMeals.reduce((sum, m) => sum + (m.calories || 0), 0);
+    const proteinConsumed = todaysMeals.reduce((sum, m) => sum + (m.protein_g || 0), 0);
+    const carbsConsumed   = todaysMeals.reduce((sum, m) => sum + (m.carbs_g   || 0), 0);
+    const fatConsumed     = todaysMeals.reduce((sum, m) => sum + (m.fat_g     || 0), 0);
+
+    const lastThreeMeals = todaysMeals.slice(0, 3);
+
+    const handleMealClick = (meal)=>{
     navigate('/diary', {
       state: {
         openMealId: meal.id
@@ -88,7 +113,9 @@ export function DashboardPage() {
                         </button>
                     </div>
                     <div className="p-6">
-                        {activeTab === 'calories' ? <CaloriesTab /> : <NutrientsTab />}
+                        {activeTab === 'calories' ? <CaloriesTab consumed={caloriesConsumed} goal={calorieGoal} /> : <NutrientsTab protein={{current:Math.round(proteinConsumed),goal:proteinGoal }}
+                                carbs={{ current:Math.round(carbsConsumed),goal:carbsGoal }}
+                                fat={{ current:Math.round(fatConsumed),goal:fatGoal }}/>}
                     </div>
                 </div>
                 <div className="bg-white rounded-2xl shadow-lg p-6">
@@ -103,13 +130,27 @@ export function DashboardPage() {
                                View All →
                            </button>
                        </div>
+                       {isLoading && (
+                        <div className="space-y-3">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="flex items-center justify-between p-3 animate-pulse">
+                                    <div className="space-y-2 flex-1">
+                                        <div className="h-4 bg-gray-200 rounded w-32" />
+                                        <div className="h-3 bg-gray-200 rounded w-20" />
+                                    </div>
+                                    <div className="h-4 bg-gray-200 rounded w-16" />
+                                </div>
+                            ))}
+                        </div>
+                        )}
+                        {!isLoading && (
                        <div className="space-y-3">
-                           {todaysMeals.length===0 ? (
+                           {lastThreeMeals.length===0 ? (
                                <p className="text-center text-gray-400 py-8">
                                    No meals logged today
                                </p>
                                ) : (
-                                   todaysMeals.map((meal)=>(
+                                   lastThreeMeals.map((meal)=>(
                                        <div
                                         key={meal.id}
                                         onClick={() => handleMealClick(meal)}
@@ -125,14 +166,14 @@ export function DashboardPage() {
                                         </div>
                                         <div className="text-right">
                                             <p className="font-semibold text-gray-900">
-                                                {meal.calories} kcal
+                                                {Math.round(meal.calories)} kcal
                                             </p>
                                         </div>
                                        </div>
                                        ))
-                                   )
-                           }
+                                   )}
                        </div>
+                       )}
                 </div>
             </div>
             <BottomNavbar/>

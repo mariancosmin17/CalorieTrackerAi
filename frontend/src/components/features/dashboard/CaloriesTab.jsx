@@ -1,10 +1,8 @@
 import { ProgressRing } from '../../common/ProgressRing';
 import { FireIcon,ArrowTrendingUpIcon } from '@heroicons/react/24/outline';
 
-export function CaloriesTab(){
-    const calorieGoal=2000;
-    const caloriesConsumed=920;
-    const caloriesRemaining=calorieGoal - caloriesConsumed;
+export function CaloriesTab({consumed=0,goal=2000}){
+    const caloriesRemaining=goal-consumed;
     return(
         <div className="space-y-6">
            <div>
@@ -16,8 +14,8 @@ export function CaloriesTab(){
                </div>
                <div className="flex justify-center py-6">
                    <ProgressRing
-                        current={caloriesConsumed}
-                        total={calorieGoal}
+                        current={Math.round(consumed)}
+                        total={goal}
                         color="#0284c7"
                         size={200}
                    />
@@ -29,7 +27,7 @@ export function CaloriesTab(){
                               Remaining
                           </p>
                           <p className="text-2xl font-bold text-primary-600">
-                              {caloriesRemaining} kcal
+                              {caloriesRemaining >=0 ? Math.round(caloriesRemaining) : 0} kcal
                           </p>
                       </div>
                       <ArrowTrendingUpIcon className="w-8 h-8 text-primary-600"/>

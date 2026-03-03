@@ -34,7 +34,6 @@ export function EditMealModal({isOpen,onClose,meal,onSave,onDelete}){
             carbs_g: nutrition.carbs,
             fat_g: nutrition.fat,
             });
-        onClose();
         };
 
     const handleDelete=()=>{

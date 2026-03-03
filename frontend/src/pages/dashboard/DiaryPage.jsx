@@ -1,4 +1,4 @@
-import { useState,useEffect,useCallback } from 'react';
+import { useState,useEffect,useCallback,useRef } from 'react';
 import { useNavigate,useLocation } from 'react-router-dom';
 import { ArrowLeftIcon, MagnifyingGlassIcon,ChevronDownIcon } from '@heroicons/react/24/outline';
 import { MealCard } from '../../components/features/diary/MealCard';
@@ -20,6 +20,7 @@ export function DiaryPage(){
     const [meals,setMeals]=useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const openMealHandled=useRef(false);
     const calorieGoal=2000;
 
   const fetchMeals=useCallback(async()=>{
@@ -112,14 +113,14 @@ export function DiaryPage(){
 
   useEffect(() =>{
     const openMealId=location.state?.openMealId;
-    if (openMealId) {
-      const meal=meals.find(m => m.id===openMealId);
+    if (!openMealId || openMealHandled.current) return;
+    const meal=meals.find(m => m.id===openMealId);
       if (meal) {
+        openMealHandled.current = true;
         setSelectedMeal(meal);
         setIsEditModalOpen(true);
+        window.history.replaceState({},document.title);
       }
-      window.history.replaceState({},document.title);
-    }
   },[location.state,meals]);
 
   useEffect(()=>{

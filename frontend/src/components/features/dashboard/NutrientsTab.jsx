@@ -1,23 +1,10 @@
 import {ProgressBar} from '../../common/ProgressBar';
 
-export function NutrientsTab() {
-  const macros={
-    protein:{
-      current:72,
-      goal:150,
-      color:'#0284c7',
-    },
-    carbs:{
-      current:118,
-      goal:250,
-      color:'#4CAF50',
-    },
-    fat:{
-      current:22,
-      goal:65,
-      color:'#FF9800',
-    },
-  };
+export function NutrientsTab({
+    protein={current:0,goal:150},
+    carbs={current:0,goal:250},
+    fat={current:0,goal:65},
+    }) {
 
   return (
       <div className="space-y-6">
@@ -27,23 +14,23 @@ export function NutrientsTab() {
         <div className="space-y-6">
             <ProgressBar
                 label="Protein"
-                current={macros.protein.current}
-                goal={macros.protein.goal}
-                color={macros.protein.color}
+                current={protein.current}
+                goal={protein.goal}
+                color="#0284c7"
                 unit="g"
             />
             <ProgressBar
                 label="Carbs"
-                current={macros.carbs.current}
-                goal={macros.carbs.goal}
-                color={macros.carbs.color}
+                current={carbs.current}
+                goal={carbs.goal}
+                color="#4CAF50"
                 unit="g"
             />
             <ProgressBar
                 label="Fat"
-                current={macros.fat.current}
-                goal={macros.fat.goal}
-                color={macros.fat.color}
+                current={fat.current}
+                goal={fat.goal}
+                color="#FF9800"
                 unit="g"
             />
         </div>
@@ -54,7 +41,7 @@ export function NutrientsTab() {
             <div className="flex items-center justify-around gap-14 text-sm">
                 <div className="flex flex-col items-center gap-1">
                         <span className="text-xl font-bold text-[#0284c7]">
-                            {macros.protein.current}g
+                            {protein.current}g
                         </span>
                         <span className="text-gray-900">
                             Protein
@@ -63,7 +50,7 @@ export function NutrientsTab() {
 
                 <div className="flex flex-col items-center gap-1">
                         <span className="text-xl font-bold text-[#4CAF50]">
-                            {macros.carbs.current}g
+                            {carbs.current}g
                         </span>
                         <span className="text-gray-900">
                             Carbs
@@ -71,7 +58,7 @@ export function NutrientsTab() {
                 </div>
                 <div className="flex flex-col items-center gap-1">
                         <span className="text-xl font-bold text-[#FF9800]">
-                            {macros.fat.current}g
+                            {fat.current}g
                         </span>
                         <span className="text-gray-900">
                             Fat
