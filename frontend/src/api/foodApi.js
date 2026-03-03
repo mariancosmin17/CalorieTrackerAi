@@ -32,3 +32,18 @@ export const getFoodHistory=async (date=null)=>{
     const response=await apiClient.get(url);
     return response;
 };
+
+export const updateMeal=async (mealId,data)=>{
+    const response = await apiClient.put(
+        `/history/item/${mealId}`,
+        data
+       );
+    return response;
+};
+
+export const deleteMeal=async (mealId) =>{
+    const response = await apiClient.delete(
+        `/history/item/${mealId}`
+    );
+    return response;
+};

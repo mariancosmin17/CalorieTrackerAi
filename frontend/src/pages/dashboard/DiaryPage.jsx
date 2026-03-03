@@ -5,7 +5,8 @@ import { MealCard } from '../../components/features/diary/MealCard';
 import { EditMealModal } from '../../components/features/diary/EditMealModal';
 import { BottomNavbar } from '../../components/layout/BottomNavbar';
 import { DatePicker } from '../../components/common/DatePicker';
-import { getFoodHistory } from '../../api/foodApi';
+import { getFoodHistory,updateMeal,deleteMeal } from '../../api/foodApi';
+
 
 export function DiaryPage(){
     const navigate=useNavigate();
@@ -82,15 +83,32 @@ export function DiaryPage(){
       setIsEditModalOpen(true);
       };
 
-  const handleSaveMeal=(updatedMeal)=>{
-      console.log('Save meal:', updatedMeal);
+  const handleSaveMeal=async (updatedMeal)=>{
+      try{
+          await updateMeal(updatedMeal.id,{
+              grams:updatedMeal.grams,
+              calories:updatedMeal.calories,
+              protein_g:updatedMeal.protein_g,
+              carbs_g:updatedMeal.carbs_g,
+              fat_g:updatedMeal.fat_g,
+              });
       setIsEditModalOpen(false);
-      };
+      fetchMeals();
+      }
+      catch (err) {
+        console.error('Failed to update meal:', err);
+      }
+};
 
-  const handleDeleteMeal=(mealId)=>{
-      console.log('Delete meal:', mealId);
-      setIsEditModalOpen(false);
-      };
+  const handleDeleteMeal=async (mealId)=>{
+      try {
+        await deleteMeal(mealId);
+        setIsEditModalOpen(false);
+        fetchMeals();
+    } catch (err) {
+        console.error('Failed to delete meal:', err);
+    }
+};
 
   useEffect(() =>{
     const openMealId=location.state?.openMealId;
