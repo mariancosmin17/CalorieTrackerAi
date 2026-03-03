@@ -1,10 +1,11 @@
-import { useState,useEffect } from 'react';
+import { useState,useEffect,useCallback } from 'react';
 import { useNavigate,useLocation } from 'react-router-dom';
 import { ArrowLeftIcon, MagnifyingGlassIcon,ChevronDownIcon } from '@heroicons/react/24/outline';
 import { MealCard } from '../../components/features/diary/MealCard';
 import { EditMealModal } from '../../components/features/diary/EditMealModal';
 import { BottomNavbar } from '../../components/layout/BottomNavbar';
 import { DatePicker } from '../../components/common/DatePicker';
+import { getFoodHistory } from '../../api/foodApi';
 
 export function DiaryPage(){
     const navigate=useNavigate();
@@ -14,83 +15,52 @@ export function DiaryPage(){
     const [selectedMeal,setSelectedMeal]=useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
+
+    const [meals,setMeals]=useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
     const calorieGoal=2000;
-    const meals = [
-    {
-      id: 1,
-      name: 'carnati',
-      type: 'Breakfast',
-      time: '08:30',
-      grams: 250,
-      calories: 320,
-      created_at: '2026-02-23',
-    },
-    {
-      id: 2,
-      name: 'Piept de pui cu orez',
-      type: 'Lunch',
-      time: '13:00',
-      grams: 350,
-      calories: 450,
-      created_at: '2026-02-23'
-    },
-    {
-      id: 3,
-      name: 'Iaurt grecesc',
-      type: 'Snack',
-      time: '16:30',
-      grams: 150,
-      calories: 150,
-      created_at: '2026-02-22',
-    },
-    {
-      id: 4,
-      name: 'Somon la grătar',
-      type: 'Dinner',
-      time: '19:00',
-      grams: 200,
-      calories: 280,
-      created_at: '2026-02-22',
-    },
-    {
-    id: 5,
-    name: 'Omletă cu legume',
-    type: 'Breakfast',
-    time: '07:45',
-    grams: 200,
-    calories: 250,
-    protein_g: 20,
-    carbs_g: 10,
-    fat_g: 15,
-    created_at: '2026-02-21',
-    },
-  ];
 
-  const filteredMealsByDate=meals.filter(meal=>{
-      const mealDate=new Date(meal.created_at);
-      const mealYear = mealDate.getFullYear();
-      const mealMonth = mealDate.getMonth();
-      const mealDay = mealDate.getDate();
+  const fetchMeals=useCallback(async()=>{
+      setIsLoading(true);
+      setError(null);
+      try{
+          const dateStr=selectedDate.toISOString().split('T')[0];
+          const response=await getFoodHistory(dateStr);
+          if(response && response.history){
+              const normalized=response.history.map(item=>({
+                  id:item.id,
+                  name:item.label,
+                  type:item.meal_type,
+                  time:item.meal_time,
+                  grams:item.grams,
+                  calories:item.calories,
+                  protein_g:item.protein_g,
+                  carbs_g:item.carbs_g,
+                  fat_g:item.fat_g,
+                  }));
+              setMeals(normalized);
+              }
+          else{setMeals([]);}
+          }
+      catch(err){console.error('Failed to fetch meals:', err);
+            setError('Could not load meals. Please try again.');
+            setMeals([]);}
+      finally{setIsLoading(false);}
+      },[selectedDate]);
 
-      const selectedYear = selectedDate.getFullYear();
-      const selectedMonth = selectedDate.getMonth();
-      const selectedDay = selectedDate.getDate();
+  useEffect(()=>{
+      fetchMeals();
+      },[fetchMeals]);
 
-      return (
-         mealYear === selectedYear &&
-         mealMonth === selectedMonth &&
-         mealDay === selectedDay
-        );
-      });
-
-  const totalCalories = filteredMealsByDate.reduce((sum, meal) => sum + meal.calories, 0);
+  const totalCalories = meals.reduce((sum, meal) => sum + (meal.calories||0), 0);
   const remainingCalories = calorieGoal - totalCalories;
 
   const mealsByType={
-      Breakfast:filteredMealsByDate.filter(m=>m.type==='Breakfast'),
-      Lunch:filteredMealsByDate.filter(m=>m.type==='Lunch'),
-      Snack:filteredMealsByDate.filter(m=>m.type==='Snack'),
-      Dinner:filteredMealsByDate.filter(m=>m.type==='Dinner'),
+      Breakfast:meals.filter(m=>m.type==='Breakfast'),
+      Lunch:meals.filter(m=>m.type==='Lunch'),
+      Snack:meals.filter(m=>m.type==='Snack'),
+      Dinner:meals.filter(m=>m.type==='Dinner'),
       };
 
   const filteredMealsByType = Object.entries(mealsByType).reduce((acc, [type, typeMeals]) => {
@@ -132,7 +102,7 @@ export function DiaryPage(){
       }
       window.history.replaceState({},document.title);
     }
-  },[location.state]);
+  },[location.state,meals]);
 
   useEffect(()=>{
       const handleClickOutside=(e)=>{
@@ -194,7 +164,7 @@ export function DiaryPage(){
                   Consumed
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {totalCalories}
+                  {Math.round(totalCalories)}
                 </p>
               </div>
               <div className="text-2xl font-light text-gray-400 mx-4 mb-2">
@@ -239,32 +209,55 @@ export function DiaryPage(){
             </div>
           </div>
         </div>
-        <div className="space-y-6">
-          {Object.entries(filteredMealsByType).length === 0 ? (
-            <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-              <p className="text-gray-400">
-                {searchQuery ? 'No meals found' : 'No meals logged today'}
-              </p>
+        {isLoading && (
+            <div className="space y-4">
+                {[1,2,3].map(i=>(
+                    <div key={i} className="bg-white rounded-2xl shadow-lg p-4 animate-pulse">
+                        <div className="h-4 bg-gray-200 rounded w-24 mb-3" />
+                        <div className="h-16 bg-gray-100 rounded-xl" />
+                    </div>
+                    ))}
             </div>
-          ) : (
-            Object.entries(filteredMealsByType).map(([type, typeMeals]) => (
-              <div key={type}>
-                <h3 className="text-lg font-semibold text-white mb-3">
-                  {type}
-                </h3>
-                <div className="space-y-3">
-                  {typeMeals.map((meal) => (
-                    <MealCard
-                      key={meal.id}
-                      meal={meal}
-                      onEdit={handleEditMeal}
-                    />
-                  ))}
+            )}
+        {!isLoading && error && (
+                    <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+                        <p className="text-red-600 text-sm">{error}</p>
+                        <button
+                            onClick={fetchMeals}
+                            className="mt-3 text-sm text-primary-600 font-medium hover:underline"
+                        >
+                            Try again
+                        </button>
+                    </div>
+                )}
+        {!isLoading && !error && (
+            <div className="space-y-6">
+              {Object.entries(filteredMealsByType).length === 0 ? (
+                <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+                  <p className="text-gray-400">
+                    {searchQuery ? 'No meals found' : 'No meals logged today'}
+                  </p>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
+              ) : (
+                Object.entries(filteredMealsByType).map(([type, typeMeals]) => (
+                  <div key={type}>
+                    <h3 className="text-lg font-semibold text-white mb-3">
+                      {type}
+                    </h3>
+                    <div className="space-y-3">
+                      {typeMeals.map((meal) => (
+                        <MealCard
+                          key={meal.id}
+                          meal={meal}
+                          onEdit={handleEditMeal}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            )}
       </div>
       <EditMealModal
         isOpen={isEditModalOpen}
