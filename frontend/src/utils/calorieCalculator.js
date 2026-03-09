@@ -1,5 +1,5 @@
 export function calculateCalorieGoal(profile){
-    const { age, gender,height_cm,weight_kg,activity_level}=profile;
+    const { age, gender,height_cm,weight_kg,activity_level,goal_type}=profile;
 
     if (!age||!gender||!height_cm||!weight_kg) return null;
     let bmr;
@@ -19,7 +19,10 @@ export function calculateCalorieGoal(profile){
     };
 
     const factor = activityFactors[activity_level] || 1.2;
-    return Math.round(bmr * factor);
+    const tdee=Math.round(bmr * factor);
+    const goalAdjustments={lose:-500,maintain:0,gain:+300};
+    const adjustment=goalAdjustments[goal_type] ?? 0;
+    return Math.max(1200, tdee + adjustment);
 }
 
 export function calculateMacroGoals(calorieGoal) {

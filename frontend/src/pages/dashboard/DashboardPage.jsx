@@ -128,9 +128,9 @@ export function DashboardPage() {
                         </button>
                     </div>
                     <div className="p-6">
-                        {activeTab === 'calories' ? <CaloriesTab consumed={caloriesConsumed} goal={calorieGoal} /> : <NutrientsTab protein={{current:Math.round(proteinConsumed),goal:proteinGoal }}
-                                carbs={{ current:Math.round(carbsConsumed),goal:carbsGoal }}
-                                fat={{ current:Math.round(fatConsumed),goal:fatGoal }}/>}
+                        {activeTab === 'calories' ? <CaloriesTab consumed={caloriesConsumed} goal={calorieGoal} /> : <NutrientsTab protein={{current:Math.round(proteinConsumed),goal:macroGoals.protein }}
+                                carbs={{ current:Math.round(carbsConsumed),goal:macroGoals.carbs }}
+                                fat={{ current:Math.round(fatConsumed),goal:macroGoals.fat }}/>}
                     </div>
                 </div>
                 <div className="bg-white rounded-2xl shadow-lg p-6">

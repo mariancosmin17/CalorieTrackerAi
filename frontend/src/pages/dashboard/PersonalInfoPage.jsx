@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeftIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, CheckIcon,ArrowTrendingDownIcon,ScaleIcon,ArrowTrendingUpIcon} from '@heroicons/react/24/outline';
 import { BottomNavbar } from '../../components/layout/BottomNavbar';
 import { getProfile, updateProfile } from '../../api/profileApi';
 
@@ -22,6 +22,7 @@ const ACTIVITY_LEVELS = [
         height_cm:'',
         weight_kg:'',
         activity_level:'',
+        goal_type:'',
     });
     const [isLoading, setIsLoading]= useState(false);
     const [isSaving, setIsSaving]= useState(false);
@@ -43,6 +44,7 @@ const ACTIVITY_LEVELS = [
                         height_cm:response.height_cm|| '',
                         weight_kg: response.weight_kg || '',
                         activity_level: response.activity_level || '',
+                        goal_type:response.goal_type|| '',
                     });
                 }
             } catch (err) {
@@ -86,6 +88,7 @@ const ACTIVITY_LEVELS = [
                 height_cm:form.height_cm ? parseFloat(form.height_cm):null,
                 weight_kg:form.weight_kg ? parseFloat(form.weight_kg) :null,
                 activity_level: form.activity_level || null,
+                goal_type:form.goal_type|| null,
             };
             const response = await updateProfile(payload);
             if (response && response.success) {
@@ -112,17 +115,17 @@ const ACTIVITY_LEVELS = [
                         <span className="text-sm font-medium">Back</span>
                     </button>
                     <h1 className="text-3xl font-bold text-white">Personal Information</h1>
-                    {error && (
-                            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                                <p className="text-red-600 text-sm">{error}</p>
-                            </div>
-                        )}
-                        {successMsg && (
-                            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                                <p className="text-green-600 text-sm">{successMsg}</p>
-                            </div>
-                        )}
                 </div>
+                {error && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                        <p className="text-red-600 text-sm">{error}</p>
+                    </div>
+                        )}
+                {successMsg && (
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+                        <p className="text-green-600 text-sm">{successMsg}</p>
+                    </div>
+                        )}
                 {isLoading && (
                     <div className="bg-white rounded-2xl shadow-lg p-6 space-y-4 animate-pulse">
                         {[1,2,3,4,5].map(i => (
@@ -279,16 +282,46 @@ const ACTIVITY_LEVELS = [
                                 ))}
                             </div>
                         </div>
-                        {error && (
-                            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                                <p className="text-red-600 text-sm">{error}</p>
+                        <div className="bg-white rounded-2xl shadow-lg p-6">
+                            <h2 className="text-base font-semibold text-gray-700 mb-4">
+                                Goal
+                            </h2>
+                            <div className="space-y-2">
+                                {[
+                                    { value: 'lose',icon: ArrowTrendingDownIcon,label: 'Lose Weight',desc: 'TDEE - 500 kcal/day' },
+                                    { value: 'maintain',icon: ScaleIcon,label: 'Maintenance',desc: 'TDEE — stay at current weight' },
+                                    { value: 'gain',icon: ArrowTrendingUpIcon,label: 'Gain Muscle',desc: 'TDEE + 300 kcal/day' },
+                                ].map(goal => {
+                                    const Icon = goal.icon;
+                                    return (
+                                        <button
+                                            key={goal.value}
+                                            onClick={() => handleChange('goal_type', goal.value)}
+                                            className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all
+                                                ${form.goal_type === goal.value
+                                                    ? 'border-primary-600 bg-primary-50'
+                                                    : 'border-gray-200 hover:border-gray-300'
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-3 text-left">
+                                                <div className={`p-2 rounded-lg ${form.goal_type === goal.value ? 'bg-primary-100' : 'bg-gray-100'}`}>
+                                                    <Icon className={`w-5 h-5 ${form.goal_type === goal.value ? 'text-primary-600' : 'text-gray-500'}`} />
+                                                </div>
+                                                <div>
+                                                    <p className={`font-medium ${form.goal_type === goal.value ? 'text-primary-700' : 'text-gray-900'}`}>
+                                                        {goal.label}
+                                                    </p>
+                                                    <p className="text-sm text-gray-500">{goal.desc}</p>
+                                                </div>
+                                            </div>
+                                            {form.goal_type === goal.value && (
+                                                <CheckIcon className="w-5 h-5 text-primary-600 flex-shrink-0" />
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
-                        )}
-                        {successMsg && (
-                            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                                <p className="text-green-600 text-sm">{successMsg}</p>
-                            </div>
-                        )}
+                        </div>
                         <button
                             onClick={handleSave}
                             disabled={isSaving}
