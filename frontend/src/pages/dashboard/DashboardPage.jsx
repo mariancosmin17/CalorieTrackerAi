@@ -5,7 +5,7 @@ import { NutrientsTab } from '../../components/features/dashboard/NutrientsTab';
 import { BottomNavbar } from '../../components/layout/BottomNavbar';
 import { getFoodHistory } from '../../api/foodApi';
 import { getProfile } from '../../api/profileApi';
-import { calculateCalorieGoal, calculateMacroGoals } from '../../utils/calorieCalculator';
+import { resolveCalorieGoal, calculateMacroGoals } from '../../utils/calorieCalculator';
 
 export function DashboardPage() {
 
@@ -22,7 +22,7 @@ export function DashboardPage() {
         const fetchProfileGoals = async () => {
             try {
                 const profile = await getProfile();
-                const calculated = calculateCalorieGoal(profile);
+                const calculated = resolveCalorieGoal(profile);
                 if (calculated) {
                     setCalorieGoal(calculated);
                     setMacroGoals(calculateMacroGoals(calculated));

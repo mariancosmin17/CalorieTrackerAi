@@ -7,7 +7,7 @@ import { BottomNavbar } from '../../components/layout/BottomNavbar';
 import { DatePicker } from '../../components/common/DatePicker';
 import { getFoodHistory,updateMeal,deleteMeal } from '../../api/foodApi';
 import { getProfile } from '../../api/profileApi';
-import { calculateCalorieGoal } from '../../utils/calorieCalculator';
+import { resolveCalorieGoal } from '../../utils/calorieCalculator';
 
 export function DiaryPage(){
     const navigate=useNavigate();
@@ -28,7 +28,7 @@ export function DiaryPage(){
         const fetchProfileGoal = async () => {
             try {
                 const profile = await getProfile();
-                const calculated = calculateCalorieGoal(profile);
+                const calculated = resolveCalorieGoal(profile);
                 if (calculated) setCalorieGoal(calculated);
             } catch (err) {
             }

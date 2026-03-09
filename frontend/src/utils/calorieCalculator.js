@@ -32,3 +32,11 @@ export function calculateMacroGoals(calorieGoal) {
         fat:Math.round((calorieGoal * 0.30) / 9),
     };
 }
+
+export function resolveCalorieGoal(profile){
+    if(profile.calorie_goal_mode==='manual' && profile.calorie_goal_manual)
+    {
+        return profile.calorie_goal_manual;
+    }
+    return calculateCalorieGoal(profile) || 2000;
+}
