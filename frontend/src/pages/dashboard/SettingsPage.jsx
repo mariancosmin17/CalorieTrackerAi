@@ -13,8 +13,7 @@ export function SettingsPage() {
   };
 
   const handleNavigate = (path) => {
-    console.log('Navigate to:', path);
-    alert(`Navigate to ${path} (page not implemented yet)`);
+    navigate(path);
   };
 
   return (
@@ -58,6 +57,15 @@ export function SettingsPage() {
               </span>
               <ChevronRightIcon className="w-5 h-5 text-gray-400" />
             </button>
+            <button
+              onClick={() => handleNavigate('/settings/change-password')}
+              className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-colors"
+            >
+              <span className="text-gray-900 font-medium">
+                2FA settings
+              </span>
+              <ChevronRightIcon className="w-5 h-5 text-gray-400" />
+            </button>
           </div>
         </div>
         <div className="bg-white rounded-2xl shadow-lg mb-4 overflow-hidden">
@@ -94,43 +102,6 @@ export function SettingsPage() {
                 </p>
               </div>
               <ChevronRightIcon className="w-5 h-5 text-gray-400" />
-            </button>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl shadow-lg mb-4 overflow-hidden">
-          <div className="px-5 py-4 pb-2">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Preferences
-            </h2>
-          </div>
-          <div>
-            <button
-              onClick={() => handleNavigate('/settings/units')}
-              className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-colors "
-            >
-              <span className="text-gray-900 font-medium">
-                Units
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500">
-                  {units}
-                </span>
-                <ChevronRightIcon className="w-5 h-5 text-gray-400" />
-              </div>
-            </button>
-            <button
-              onClick={() => handleNavigate('/settings/language')}
-              className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-colors"
-            >
-              <span className="text-gray-900 font-medium">
-                Language
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500">
-                  {language}
-                </span>
-                <ChevronRightIcon className="w-5 h-5 text-gray-400" />
-              </div>
             </button>
           </div>
         </div>

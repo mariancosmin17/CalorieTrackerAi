@@ -4,6 +4,8 @@ import { CaloriesTab } from '../../components/features/dashboard/CaloriesTab';
 import { NutrientsTab } from '../../components/features/dashboard/NutrientsTab';
 import { BottomNavbar } from '../../components/layout/BottomNavbar';
 import { getFoodHistory } from '../../api/foodApi';
+import { getProfile } from '../../api/profileApi';
+import { calculateCalorieGoal, calculateMacroGoals } from '../../utils/calorieCalculator';
 
 export function DashboardPage() {
 
@@ -13,11 +15,24 @@ export function DashboardPage() {
     const [selectedMeal, setSelectedMeal] = useState(null);
     const [todaysMeals,setTodaysMeals]=useState([]);
     const [isLoading,setIsLoading]=useState(null);
+    const [calorieGoal, setCalorieGoal] = useState(2000);
+    const [macroGoals, setMacroGoals] = useState({ protein: 150, carbs: 250, fat: 65 });
 
-    const calorieGoal = 2000;
-    const proteinGoal = 150;
-    const carbsGoal   = 250;
-    const fatGoal     = 65;
+    useEffect(() => {
+        const fetchProfileGoals = async () => {
+            try {
+                const profile = await getProfile();
+                const calculated = calculateCalorieGoal(profile);
+                if (calculated) {
+                    setCalorieGoal(calculated);
+                    setMacroGoals(calculateMacroGoals(calculated));
+                }
+            } catch (err) {
+                console.error('Failed to fetch profile:', err);
+            }
+        };
+        fetchProfileGoals();
+    }, []);
 
     const fetchTodaysMeals = useCallback(async () => {
         setIsLoading(true);

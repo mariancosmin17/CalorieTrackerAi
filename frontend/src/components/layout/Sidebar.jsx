@@ -23,8 +23,8 @@ export function Sidebar({isOpen,onClose}){
                 },
             },
         {
-            id:'notifications',
-            label:'Notifications',
+            id:'progress',
+            label:'Progress',
             icon:BellIcon,
             onClick:()=>{
                 console.log('urmeaza');

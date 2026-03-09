@@ -12,6 +12,7 @@ import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { DiaryPage } from './pages/dashboard/DiaryPage';
 import { SettingsPage } from './pages/dashboard/SettingsPage';
 import { LogFoodPage } from './pages/dashboard/LogFoodPage';
+import { PersonalInfoPage } from './pages/dashboard/PersonalInfoPage';
 
 function ProtectedRoute({children}){
     const {isLoggedIn,isLoading}=useAuth();
@@ -98,6 +99,14 @@ function App(){
               <SettingsPage />
             </ProtectedRoute>
           }
+        />
+        <Route
+            path="/settings/personal-info"
+            element={
+                <ProtectedRoute>
+                    <PersonalInfoPage />
+                </ProtectedRoute>
+            }
         />
         <Route
           path="/log-food"

@@ -6,7 +6,8 @@ import { EditMealModal } from '../../components/features/diary/EditMealModal';
 import { BottomNavbar } from '../../components/layout/BottomNavbar';
 import { DatePicker } from '../../components/common/DatePicker';
 import { getFoodHistory,updateMeal,deleteMeal } from '../../api/foodApi';
-
+import { getProfile } from '../../api/profileApi';
+import { calculateCalorieGoal } from '../../utils/calorieCalculator';
 
 export function DiaryPage(){
     const navigate=useNavigate();
@@ -21,7 +22,19 @@ export function DiaryPage(){
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const openMealHandled=useRef(false);
-    const calorieGoal=2000;
+    const [calorieGoal, setCalorieGoal] = useState(2000);
+
+    useEffect(() => {
+        const fetchProfileGoal = async () => {
+            try {
+                const profile = await getProfile();
+                const calculated = calculateCalorieGoal(profile);
+                if (calculated) setCalorieGoal(calculated);
+            } catch (err) {
+            }
+        };
+        fetchProfileGoal();
+    }, []);
 
   const fetchMeals=useCallback(async()=>{
       setIsLoading(true);
