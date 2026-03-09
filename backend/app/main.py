@@ -527,3 +527,69 @@ def update_meal(meal_id:int,db:Session=Depends(get_db),current_user: User = Depe
         "id":meal_id
     }
 
+class UpdateProfileRequest(BaseModel):
+    full_name:str|None=None
+    age:int | None = None
+    gender:str |None = None
+    height_cm: float| None = None
+    weight_kg:float| None = None
+    activity_level:str | None = None
+    username:str | None = None
+    email:str|None = None
+    goal_type:str|None = None
+
+@app.get("/profile")
+def get_profile(current_user:User=Depends(get_current_user)):
+    return{"success":True,
+        "id":current_user.id,
+        "username":current_user.username,
+        "email":current_user.email,
+        "full_name":current_user.full_name,
+        "age":current_user.age,
+        "gender":current_user.gender,
+        "height_cm":current_user.height_cm,
+        "weight_kg":current_user.weight_kg,
+        "activity_level":current_user.activity_level,
+        "goal_type": current_user.goal_type,
+        "is_2fa_enabled":current_user.is_2fa_enabled,
+    }
+
+@app.put("/profile")
+def update_profile(request:UpdateProfileRequest,db:Session=Depends(get_db),current_user:User=Depends(get_current_user)):
+    if request.username and request.username!=current_user.username:
+        existing=db.query(User).filter(User.username==request.username).firt()
+        if existing:
+            raise HTTPException(status_code=400, detail="Username already taken.")
+        current_user.username = request.username
+
+    if request.email and request.email != current_user.email:
+        if not validate_email(request.email):
+            raise HTTPException(status_code=400, detail="Invalid email format.")
+        existing = db.query(User).filter(User.email == request.email).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Email already taken.")
+        current_user.email = request.email
+
+    if request.full_name is not None: current_user.full_name = request.full_name
+    if request.age is not None: current_user.age = request.age
+    if request.gender is not None: current_user.gender = request.gender
+    if request.height_cm is not None: current_user.height_cm = request.height_cm
+    if request.weight_kg is not None: current_user.weight_kg = request.weight_kg
+    if request.activity_level is not None: current_user.activity_level = request.activity_level
+    if request.goal_type is not None: current_user.goal_type = request.goal_type
+
+    db.commit()
+    db.refresh(current_user)
+
+    return {
+        "success": True,
+        "message": "Profile updated successfully",
+        "username": current_user.username,
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "age": current_user.age,
+        "gender": current_user.gender,
+        "height_cm": current_user.height_cm,
+        "weight_kg": current_user.weight_kg,
+        "activity_level": current_user.activity_level,
+    }

@@ -14,6 +14,13 @@ class User(Base):
     totp_secret=Column(String,nullable=True)
     history=relationship("History",back_populates="user")
     reset_codes=relationship("PasswordReset",back_populates="user")
+    full_name=Column(String,nullable=True)
+    age=Column(Integer, nullable=True)
+    gender = Column(String, nullable=True)
+    height_cm = Column(Float, nullable=True)
+    weight_kg = Column(Float, nullable=True)
+    activity_level = Column(String, nullable=True)
+    goal_type = Column(String, nullable=True)
 
 class History(Base):
     __tablename__="history"
