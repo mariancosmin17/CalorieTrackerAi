@@ -537,6 +537,9 @@ class UpdateProfileRequest(BaseModel):
     username:str | None = None
     email:str|None = None
     goal_type:str|None = None
+    calorie_goal_mode:str|None = None
+    calorie_goal_manual:float|None = None
+    weight_goal_kg: float |None = None
 
 @app.get("/profile")
 def get_profile(current_user:User=Depends(get_current_user)):
@@ -551,6 +554,9 @@ def get_profile(current_user:User=Depends(get_current_user)):
         "weight_kg":current_user.weight_kg,
         "activity_level":current_user.activity_level,
         "goal_type": current_user.goal_type,
+        "calorie_goal_mode": current_user.calorie_goal_mode,
+        "calorie_goal_manual": current_user.calorie_goal_manual,
+        "weight_goal_kg": current_user.weight_goal_kg,
         "is_2fa_enabled":current_user.is_2fa_enabled,
     }
 
@@ -577,6 +583,9 @@ def update_profile(request:UpdateProfileRequest,db:Session=Depends(get_db),curre
     if request.weight_kg is not None: current_user.weight_kg = request.weight_kg
     if request.activity_level is not None: current_user.activity_level = request.activity_level
     if request.goal_type is not None: current_user.goal_type = request.goal_type
+    if request.calorie_goal_mode is not None: current_user.calorie_goal_mode = request.calorie_goal_mode
+    if request.calorie_goal_manual is not None: current_user.calorie_goal_manual = request.calorie_goal_manual
+    if request.weight_goal_kg is not None: current_user.weight_goal_kg = request.weight_goal_kg
 
     db.commit()
     db.refresh(current_user)
