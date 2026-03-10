@@ -13,6 +13,8 @@ import { DiaryPage } from './pages/dashboard/DiaryPage';
 import { SettingsPage } from './pages/dashboard/SettingsPage';
 import { LogFoodPage } from './pages/dashboard/LogFoodPage';
 import { PersonalInfoPage } from './pages/dashboard/PersonalInfoPage';
+import { TwoFASettingsPage } from './pages/dashboard/TwoFASettingsPage';
+import { TwoFALoginPage } from './pages/auth/TwoFALoginPage';
 
 function ProtectedRoute({children}){
     const {isLoggedIn,isLoading}=useAuth();
@@ -71,6 +73,18 @@ function App(){
           element={
               <ResetPasswordPage />
           }
+        />
+        <Route
+          path="/settings/2fa"
+          element={
+            <ProtectedRoute>
+              <TwoFASettingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/login/2fa"
+          element={<TwoFALoginPage />}
         />
         <Route
           path="/dashboard"

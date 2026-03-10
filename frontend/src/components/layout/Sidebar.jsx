@@ -3,10 +3,10 @@ import {useAuth} from '../../context/AuthContext';
 import {
   XMarkIcon,
   UserIcon,
-  BellIcon,
   QuestionMarkCircleIcon,
   InformationCircleIcon,
   ArrowRightOnRectangleIcon,
+  Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 
 export function Sidebar({isOpen,onClose}){
@@ -23,9 +23,9 @@ export function Sidebar({isOpen,onClose}){
                 },
             },
         {
-            id:'progress',
-            label:'Progress',
-            icon:BellIcon,
+            id:'settings',
+            label:'Settings',
+            icon:Cog6ToothIcon,
             onClick:()=>{
                 console.log('urmeaza');
                 onClose();

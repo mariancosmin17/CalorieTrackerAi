@@ -6,6 +6,7 @@ import {
   PlusCircleIcon,
   Cog6ToothIcon,
   Bars3Icon,
+  ChartBarIcon,
 } from '@heroicons/react/24/outline';
 import {Sidebar} from './Sidebar';
 export function BottomNavbar(){
@@ -34,8 +35,8 @@ export function BottomNavbar(){
             },
         {
             id:'settings',
-            label:'Settings',
-            icon:Cog6ToothIcon,
+            label:'Progress',
+            icon:ChartBarIcon,
             path:'/settings',
             },
         {

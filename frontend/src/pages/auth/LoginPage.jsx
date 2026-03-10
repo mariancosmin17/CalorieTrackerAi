@@ -49,7 +49,12 @@ export function LoginPage() {
         if (result.success) {
         navigate('/dashboard');
       } else if (result.requires2FA) {
-        alert('2FA required! (mai tz)');
+            navigate('/login/2fa', {
+            state: {
+                tempToken: result.tempToken,
+                username,
+            }
+        });
       } else {
         setError(result.error || 'Login failed');
       }
