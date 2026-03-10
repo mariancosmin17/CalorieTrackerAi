@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {useLocation,useNavigate} from 'react-router-dom';
 import {useAuth} from '../../context/AuthContext';
 import {
@@ -8,10 +9,12 @@ import {
   ArrowRightOnRectangleIcon,
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
+import { HelpSupportPanel } from './HelpSupportPanel';
 
 export function Sidebar({isOpen,onClose}){
     const navigate=useNavigate();
     const {logout}=useAuth();
+    const [showHelp,setShowHelp]=useState(false);
     const menuItems=[
         {
             id:'profile',
@@ -35,20 +38,9 @@ export function Sidebar({isOpen,onClose}){
             id:'help',
             label:'Help & Support',
             icon:QuestionMarkCircleIcon,
-            onClick:()=>{
-                console.log('urmeaza');
-                onClose();
-                },
+            onClick:()=> setShowHelp(true),
             },
-        {
-            id:'about',
-            label:'About',
-            icon:InformationCircleIcon,
-            onClick:()=>{
-                console.log('urmeaza');
-                onClose();
-                },
-            },
+
         ];
 
     const handleLogout= async()=>{
@@ -62,6 +54,12 @@ export function Sidebar({isOpen,onClose}){
             }
         };
     if (!isOpen) return null;
+
+    if (showHelp) {
+        return (
+            <HelpSupportPanel onClose={() => { setShowHelp(false);  }} />
+        );
+    }
 
     return(
         <>

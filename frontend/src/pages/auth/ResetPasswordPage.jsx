@@ -282,7 +282,7 @@ export function ResetPasswordPage(){
                     </form>
                     <div className="mt-6 text-center">
                         <Link
-                            to="/login"
+                            to={fromSettings ? '/settings' : '/login'}
                             className="text-sm text-gray-600 hover:text-primary-600 transition-colors inline-flex items-center gap-1"
                         >
                             <svg
@@ -298,7 +298,7 @@ export function ResetPasswordPage(){
                                     d="M15 19l-7-7 7-7"
                                 />
                             </svg>
-                            Back to sign in
+                            {fromSettings ? 'Back to Settings' : 'Back to Sign In'}
                         </Link>
                     </div>
                 </div>
