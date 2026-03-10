@@ -18,7 +18,7 @@ export function Sidebar({isOpen,onClose}){
             label:'Profile',
             icon:UserIcon,
             onClick:()=>{
-                navigate('/settings');
+                navigate('/settings/personal-info');
                 onClose();
                 },
             },
@@ -27,7 +27,7 @@ export function Sidebar({isOpen,onClose}){
             label:'Settings',
             icon:Cog6ToothIcon,
             onClick:()=>{
-                console.log('urmeaza');
+                navigate('/settings');
                 onClose();
                 },
             },
