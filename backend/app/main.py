@@ -12,7 +12,7 @@ import os
 import uuid
 import io
 from app.core.config import settings
-from app.core.email import send_reset_code
+from app.core.email import send_reset_code,send_support_email
 from app.core.utils import validate_email,validate_password,generate_code
 from app.core.security import decode_access_token, hash_password, verify_password, create_access_token
 from app.db.models import User, History,PasswordReset
@@ -602,3 +602,18 @@ def update_profile(request:UpdateProfileRequest,db:Session=Depends(get_db),curre
         "weight_kg": current_user.weight_kg,
         "activity_level": current_user.activity_level,
     }
+
+@app.post("/support")
+def send_support_message(message:str=Form(...),current_user:User=Depends(get_current_user),db:Session=Depends(get_db)):
+    if not message.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Message cannot be empty."
+        )
+    email_sent=send_support_email(user_email=current_user.email,username=current_user.username,message=message)
+    if not email_sent:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to send message. Please try again later."
+        )
+    return {"success": True, "message": "Message sent successfully!"}

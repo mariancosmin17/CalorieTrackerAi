@@ -40,3 +40,30 @@ def send_reset_code(to_email: str, reset_code: str) -> bool:
     </html>
     """
     return send_email(to_email, subject, body)
+
+def send_support_email(user_email: str, username: str, message: str) -> bool:
+    subject = f"Support Request from {username} - CalorieTracker AI"
+    body = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2 style="color: #1E3A5F;">New Support Request</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px; font-weight: bold; color: #555;">From:</td>
+                    <td style="padding: 8px;">{username}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; font-weight: bold; color: #555;">Email:</td>
+                    <td style="padding: 8px;">{user_email}</td>
+                </tr>
+            </table>
+            <div style="margin-top: 20px; background-color: #f4f4f4; padding: 15px; border-radius: 8px;">
+                <h3 style="color: #333; margin-top: 0;">Message:</h3>
+                <p style="color: #444; line-height: 1.6;">{message}</p>
+            </div>
+            <hr style="margin-top: 30px;">
+            <p style="color: #999; font-size: 12px;">CalorieTracker AI - Support System</p>
+        </body>
+    </html>
+    """
+    return send_email(settings.SMTP_FROM_EMAIL, subject, body)
