@@ -63,17 +63,13 @@ function App(){
         <Route
           path="/forgot-password"
           element={
-            <PublicRoute>
               <ForgotPasswordPage />
-            </PublicRoute>
           }
         />
         <Route
           path="/reset-password"
           element={
-            <PublicRoute>
               <ResetPasswordPage />
-            </PublicRoute>
           }
         />
         <Route

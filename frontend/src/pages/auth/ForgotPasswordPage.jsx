@@ -8,13 +8,17 @@ export function ForgotPasswordPage(){
     const {forgotPassword}=useAuth();
     const navigate=useNavigate();
     const location=useLocation();
+
     useEffect(()=>{
         if(location.state?.error)
         {
             setError(location.state.error);
             }
         },[location.state]);
-    const [email,setEmail]=useState('');
+
+    const fromSettings=location.state?.fromSettings || false;
+    const prefillEmail=location.state?.prefillEmail || '';
+    const [email,setEmail]=useState(prefillEmail);
     const [isLoading,setIsLoading]=useState(false);
     const [error,setError]=useState('');
     const [fieldErrors,setFieldErrors]=useState({email:''});
@@ -50,7 +54,8 @@ export function ForgotPasswordPage(){
                     state:{
                         email,
                         message:result.message,
-                        expiresInMinutes:result.expiresInMinutes
+                        expiresInMinutes:result.expiresInMinutes,
+                        fromSettings,
                         }
                     });
                 }
@@ -83,10 +88,10 @@ export function ForgotPasswordPage(){
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
                     <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
-                        Forgot
+                        {fromSettings ? 'Change' : 'Forgot'}
                     </h1>
                     <p className="text-xl text-gray-200">
-                        password?
+                        password
                     </p>
                 </div>
                 <div className="bg-white rounded-3xl shadow-2xl p-8">
@@ -99,7 +104,10 @@ export function ForgotPasswordPage(){
                         )}
                     <div className="mb-6">
                         <p className="text-gray-600 text-sm text-center">
-                            Enter your email and we'll send you a code to reset your password.
+                            {fromSettings
+                                ? "We'll send a reset code to your email"
+                                : "Enter your email and we'll send you a code to reset your password."
+                            }
                         </p>
                     </div>
                     <form onSubmit={handleSubmit}>
@@ -123,15 +131,15 @@ export function ForgotPasswordPage(){
                     </form>
 
                     <div className="mt-6 text-center">
-                        <Link
-                          to="/login"
+                        <button
+                          onClick={()=>fromSettings ? navigate('/settings') : navigate('/login')}
                           className="text-sm text-gray-600 hover:text-primary-600 transition-colors inline-flex items-center gap-1"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                           </svg>
-                          Back to Sign In
-                        </Link>
+                          {fromSettings ? 'Back to Settings' : 'Back to Sign In'}
+                        </button>
                     </div>
                 </div>
             </div>

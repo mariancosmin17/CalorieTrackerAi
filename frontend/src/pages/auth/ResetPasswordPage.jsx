@@ -9,12 +9,13 @@ export function ResetPasswordPage(){
     const navigate=useNavigate();
     const location=useLocation();
 
+    const fromSettings = location.state?.fromSettings || false;
     const emailFromState=location.state?.email;
     useEffect(()=>{
         if(!emailFromState)
         {
-            navigate('/forgot-password',{
-                state:{
+            navigate(fromSettings ? '/settings' : '/forgot-password',{
+                state:fromSettings ? {} : {
                     error:'Please enter your email first.'
                     }
                 });
@@ -131,10 +132,12 @@ export function ResetPasswordPage(){
 
             if(result.success)
             {
-                setSuccessMessage('Password reset successfully! Redirecting to login...');
+                setSuccessMessage('Password changed successfully! Redirecting...');
                 setTimeout(()=>{
-                    navigate('/login',{
-                        state:{message:'Password reset successfully! Please login with your new password.'}
+                    navigate(fromSettings ? '/settings' : '/login',{
+                        state:fromSettings
+                        ? {successMsg:'Password changed successfully!'}
+                        : {message:'Password reset successfully! Please login with your new password.'}
                         });
                     },2000);
                 }

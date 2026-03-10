@@ -79,6 +79,20 @@ export function SettingsPage() {
         }
     };
 
+    const handleChangePassword=async ()=>{
+        try{
+            const res=await getProfile();
+            navigate('/forgot-password',{
+                state:{
+                    prefillEmail:res?.email || '',
+                    fromSettings:true,}
+                });
+            }
+        catch{
+            navigate('/forgot-password', { state: { fromSettings: true } });
+            }
+        };
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#0A1F44] via-[#1E3A5F] to-gray-100 pb-20">
             <div className="p-6 max-w-2xl mx-auto">
@@ -105,7 +119,7 @@ export function SettingsPage() {
                         <ChevronRightIcon className="w-5 h-5 text-gray-400" />
                     </button>
                     <button
-                        onClick={() => navigate('/settings/change-password')}
+                        onClick={handleChangePassword}
                         className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-colors"
                     >
                         <span className="text-gray-900 font-medium">Change Password</span>
