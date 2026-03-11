@@ -130,7 +130,7 @@ export function RegisterPage(){
             if(result.success){
                 setSuccessMessage('Account created successfully! Redirecting to login...');
                 setTimeout(()=>{navigate('/login',{
-                    state:{message:'Account created! Please login.'}
+                    state:{message:'Account created! Please login to continue setup.'}
                     });
                 },2000);
                 }
