@@ -24,6 +24,7 @@ class User(Base):
     calorie_goal_mode = Column(String, nullable=True)
     calorie_goal_manual = Column(Float, nullable=True)
     weight_goal_kg = Column(Float, nullable=True)
+    setup_completed = Column(Boolean, default=False)
 
 class History(Base):
     __tablename__="history"

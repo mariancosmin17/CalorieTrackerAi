@@ -558,6 +558,7 @@ def get_profile(current_user:User=Depends(get_current_user)):
         "calorie_goal_manual": current_user.calorie_goal_manual,
         "weight_goal_kg": current_user.weight_goal_kg,
         "is_2fa_enabled":current_user.is_2fa_enabled,
+        "setup_completed":current_user.setup_completed,
     }
 
 @app.put("/profile")
@@ -617,3 +618,35 @@ def send_support_message(message:str=Form(...),current_user:User=Depends(get_cur
             detail="Failed to send message. Please try again later."
         )
     return {"success": True, "message": "Message sent successfully!"}
+
+class SetupRequest(BaseModel):
+    age:int
+    gender:str
+    weight_kg:float
+    height_cm:float
+    activity_level:str
+    goal_type:str
+    weight_goal_kg:float|None=None
+
+@app.post('/setup/complete')
+def complete_setup(request: SetupRequest,db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
+    if request.gender not in ['male', 'female']:
+        raise HTTPException(status_code=400, detail="Invalid gender.")
+    if request.activity_level not in ['sedentary', 'light', 'moderate', 'active']:
+        raise HTTPException(status_code=400, detail="Invalid activity level.")
+    if request.goal_type not in ['lose', 'maintain', 'gain']:
+        raise HTTPException(status_code=400, detail="Invalid goal type.")
+    if request.goal_type in ['lose', 'gain'] and not request.weight_goal_kg:
+        raise HTTPException(status_code=400, detail="Target weight is required for this goal.")
+
+    current_user.age = request.age
+    current_user.gender = request.gender
+    current_user.weight_kg = request.weight_kg
+    current_user.height_cm = request.height_cm
+    current_user.activity_level = request.activity_level
+    current_user.goal_type = request.goal_type
+    current_user.weight_goal_kg = request.weight_goal_kg
+    current_user.setup_completed = True
+    db.commit()
+
+    return{"success":True,"message":"Setup completed successfully!"}
