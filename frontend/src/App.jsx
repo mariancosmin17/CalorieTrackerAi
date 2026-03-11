@@ -1,5 +1,5 @@
 import {BrowserRouter,Routes,Route,Navigate} from 'react-router-dom';
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import {useAuth} from './context/AuthContext';
 import {LoginPage} from './pages/auth/LoginPage';
 import {RegisterPage} from './pages/auth/RegisterPage';
@@ -15,17 +15,69 @@ import { LogFoodPage } from './pages/dashboard/LogFoodPage';
 import { PersonalInfoPage } from './pages/dashboard/PersonalInfoPage';
 import { TwoFASettingsPage } from './pages/dashboard/TwoFASettingsPage';
 import { TwoFALoginPage } from './pages/auth/TwoFALoginPage';
+import {SetupPage} from './pages/setup/SetupPage';
+import { getProfile } from './api/profileApi';
 
-function ProtectedRoute({children}){
+function ProtectedRoute({children,requireSetup=true}){
     const {isLoggedIn,isLoading}=useAuth();
-    if(isLoading){
+    const [setupCompleted, setSetupCompleted] = useState(null);
+    const [checkingSetup, setCheckingSetup] = useState(true);
+
+    useEffect(()=>{
+        if(!isLoggedIn || !requireSetup)
+        {setCheckingSetup(false);
+            return;}
+        const check=async ()=>{
+        try{
+            const profile=await getProfile();
+            setSetupCompleted(profile?.setup_completed || false);
+            }
+        catch{
+            setSetupCompleted(false);}
+        finally{setCheckingSetup(false);}
+        }
+    check();
+        },[isLoggedIn,requireSetup]);
+
+    if(isLoading || checkingSetup){
         return null;
         }
     if(!isLoggedIn){
         return <Navigate to="/login" replace />
         }
+    if (requireSetup && setupCompleted === false) {
+        return <Navigate to="/setup" replace />;
+    }
     return children;
 }
+
+function SetupRoute({children}){
+    const { isLoggedIn, isLoading }=useAuth();
+    const [setupCompleted, setSetupCompleted]=useState(null);
+    const [checking, setChecking]= useState(true);
+
+    useEffect(() => {
+        if (!isLoggedIn) {
+            setChecking(false);
+            return;
+        }
+        const check = async () => {
+            try {
+                const profile = await getProfile();
+                setSetupCompleted(profile?.setup_completed || false);
+            } catch {
+                setSetupCompleted(false);
+            } finally {
+                setChecking(false);
+            }
+        };
+        check();
+    }, [isLoggedIn]);
+    if (isLoading || checking) return null;
+    if (!isLoggedIn) return <Navigate to="/login" replace />;
+    if (setupCompleted) return <Navigate to="/dashboard" replace />;
+    return children;
+    }
 
 function PublicRoute({children}){
   const {isLoggedIn,isLoading}=useAuth();
@@ -72,6 +124,14 @@ function App(){
           path="/reset-password"
           element={
               <ResetPasswordPage />
+          }
+        />
+        <Route
+          path="/setup"
+          element={
+              <SetupRoute>
+                  <SetupPage />
+              </SetupRoute>
           }
         />
         <Route
