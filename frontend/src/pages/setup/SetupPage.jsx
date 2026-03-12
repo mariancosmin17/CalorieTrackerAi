@@ -63,8 +63,8 @@ export function SetupPage(){
         const b = parseFloat(bmi);
         if (b < 18.5) return { label:'Underweight', color: 'text-blue-500' };
         if (b < 25) return { label:'Normal',color: 'text-green-600' };
-        if (b < 30) return { label:'Overweight',color: 'text-yellow-500' };
-        return { label:'Obese',color:'text-red-500' };
+        if (b < 30) return { label:'Moderately Overweight',color: 'text-yellow-500' };
+        return { label:'Overweight',color:'text-red-500' };
     };
     const bmiCategory=getBmiCategory(bmi);
 

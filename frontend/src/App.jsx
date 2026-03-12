@@ -17,6 +17,7 @@ import { TwoFASettingsPage } from './pages/dashboard/TwoFASettingsPage';
 import { TwoFALoginPage } from './pages/auth/TwoFALoginPage';
 import {SetupPage} from './pages/setup/SetupPage';
 import { getProfile } from './api/profileApi';
+import { ProgressPage } from './pages/dashboard/ProgressPage';
 
 function ProtectedRoute({children,requireSetup=true}){
     const {isLoggedIn,isLoading}=useAuth();
@@ -183,6 +184,14 @@ function App(){
           element={
             <ProtectedRoute>
               <LogFoodPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/progress"
+          element={
+            <ProtectedRoute>
+              <ProgressPage />
             </ProtectedRoute>
           }
         />

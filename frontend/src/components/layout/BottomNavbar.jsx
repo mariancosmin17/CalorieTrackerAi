@@ -34,10 +34,10 @@ export function BottomNavbar(){
             isCenter:true,
             },
         {
-            id:'settings',
+            id:'progress',
             label:'Progress',
             icon:ChartBarIcon,
-            path:'/settings',
+            path:'/progress',
             },
         {
             id:'more',
