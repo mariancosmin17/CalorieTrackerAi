@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime,Boolean
+from sqlalchemy import Date,Column, Integer, String, Float, ForeignKey, DateTime,Boolean
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 from datetime import datetime
@@ -25,6 +25,17 @@ class User(Base):
     calorie_goal_manual = Column(Float, nullable=True)
     weight_goal_kg = Column(Float, nullable=True)
     setup_completed = Column(Boolean, default=False)
+    start_weight = Column(Float, nullable=True)
+    weight_logs = relationship("WeightLog", back_populates="user", cascade="all, delete-orphan")
+
+class WeightLog(Base):
+    __tablename__="weight_logs"
+    id=Column(Integer,primary_key=True,index=True)
+    user_id=Column(Integer,ForeignKey("users.id"),nullable=False)
+    weight_kg = Column(Float, nullable=False)
+    date = Column(Date, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    user=relationship("User",back_populates="weight_logs")
 
 class History(Base):
     __tablename__="history"

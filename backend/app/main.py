@@ -7,7 +7,7 @@ from fastapi. middleware.cors import CORSMiddleware
 from datetime import datetime,timedelta
 from pydantic import BaseModel
 from typing import List
-from datetime import date as date_type
+from datetime import date as date_type,timedelta
 import os
 import uuid
 import io
@@ -15,7 +15,7 @@ from app.core.config import settings
 from app.core.email import send_reset_code,send_support_email
 from app.core.utils import validate_email,validate_password,generate_code
 from app.core.security import decode_access_token, hash_password, verify_password, create_access_token
-from app.db.models import User, History,PasswordReset
+from app.db.models import User, History,PasswordReset,WeightLog
 from app.db.database import Base, engine, SessionLocal
 from app.services.nutrition_estimator import NutritionEstimator
 from app.core.totp import (
@@ -588,6 +588,9 @@ def update_profile(request:UpdateProfileRequest,db:Session=Depends(get_db),curre
     if request.calorie_goal_manual is not None: current_user.calorie_goal_manual = request.calorie_goal_manual
     if request.weight_goal_kg is not None: current_user.weight_goal_kg = request.weight_goal_kg
 
+    if request.goal_type and request.goal_type != current_user.goal_type:
+        current_user.start_weight = current_user.weight_kg
+
     db.commit()
     db.refresh(current_user)
 
@@ -646,7 +649,156 @@ def complete_setup(request: SetupRequest,db: Session = Depends(get_db),current_u
     current_user.activity_level = request.activity_level
     current_user.goal_type = request.goal_type
     current_user.weight_goal_kg = request.weight_goal_kg
+    current_user.start_weight=request.weight_kg
     current_user.setup_completed = True
+
+    first_log=WeightLog(user_id=current_user.id,
+                        weight_kg=request.weight_kg,
+                        date=date_type.today(),)
+    db.add(first_log)
     db.commit()
 
     return{"success":True,"message":"Setup completed successfully!"}
+
+@app.post("/weight-log")
+def add_weight_log(weight_kg:float=Form(...),db:Session=Depends(get_db),current_user:User=Depends(get_current_user)):
+    if weight_kg < 20 or weight_kg > 300:
+        raise HTTPException(status_code=400, detail="Invalid weight value.")
+    today = date_type.today()
+    existing=db.query(WeightLog).filter(WeightLog.user_id==current_user.id,WeightLog.date==today).first()
+    if existing:
+        existing.weight_kg=weight_kg
+    else:
+        log=WeightLog(user_id=current_user.id,
+            weight_kg=weight_kg,
+            date=today,
+        )
+        db.add(log)
+    current_user.weight_kg=weight_kg
+    db.commit()
+
+    return {"success": True, "message": "Weight logged successfully!", "weight_kg": weight_kg}
+
+@app.get("/progress")
+def get_progress(db:Session=Depends(get_db),current_user:User=Depends(get_current_user)):
+    def calculate_tdee(user):
+        if not user.weight_kg or not user.height_cm or not user.age or not user.gender:
+            return 2000
+        if user.gender == 'male':
+            bmr = 10 * user.weight_kg + 6.25 * user.height_cm - 5 * user.age + 5
+        else:
+            bmr = 10 * user.weight_kg + 6.25 * user.height_cm - 5 * user.age - 161
+        multipliers = {
+            'sedentary': 1.2,
+            'light': 1.375,
+            'moderate': 1.55,
+            'active': 1.725,
+        }
+        tdee = bmr * multipliers.get(user.activity_level, 1.2)
+        if user.goal_type == 'lose':
+            tdee -= 500
+        elif user.goal_type == 'gain':
+            tdee += 300
+        return round(tdee)
+
+    if current_user.calorie_goal_mode == 'manual' and current_user.calorie_goal_manual:
+        calorie_goal = current_user.calorie_goal_manual
+    else:
+        calorie_goal = calculate_tdee(current_user)
+
+    weight_logs = db.query(WeightLog).filter(
+        WeightLog.user_id == current_user.id
+    ).order_by(WeightLog.date.asc()).all()
+
+    start_weight=current_user.start_weight or current_user.weight_kg or 0
+    current_weight = weight_logs[-1].weight_kg if weight_logs else (current_user.weight_kg or 0)
+    goal_weight=current_user.weight_goal_kg
+    goal_type=current_user.goal_type or 'maintain'
+
+    if goal_type=='lose' and goal_weight:
+        total=round(start_weight - goal_weight, 1)
+        changed=round(start_weight - current_weight, 1)
+        remaining=round(current_weight - goal_weight, 1)
+        progress=round((changed / total * 100), 1) if total > 0 else 0
+
+    elif goal_type=='gain' and goal_weight:
+        total=round(goal_weight - start_weight, 1)
+        changed=round(current_weight - start_weight, 1)
+        remaining=round(goal_weight - current_weight, 1)
+        progress=round((changed / total * 100), 1) if total > 0 else 0
+
+    else:
+        total=0
+        changed=0
+        remaining=0
+        progress=100
+
+    all_history=db.query(History).filter(History.user_id==current_user.id).order_by(History.date.asc()).all()
+    distinct_days=len(set(str(h.date) for h in all_history))
+    today=date_type.today()
+    streak=0
+    check_day=today
+    logged_days=set(str(h.date) for h in all_history)
+    while str(check_day) in logged_days:
+        streak+=1
+        check_day-=timedelta(days=1)
+
+    if all_history:
+        total_cals=sum(h.calories or 0 for h in all_history)
+        avg_calories=round(total_cals / distinct_days) if distinct_days>0 else 0
+    else:
+        avg_calories=0
+
+    week_ago=today-timedelta(days=7)
+    week_history=[h for h in all_history if h.date>=week_ago]
+    weekly_calories=sum(h.calories or 0 for h in week_history)
+
+    week_days=len(set(str(h.date) for h in week_history))
+    if week_days>0 and calorie_goal:
+        avg_weekly_cal=weekly_calories/week_days
+        daily_diff=avg_weekly_cal-calorie_goal
+        weekly_change=round((daily_diff*7)/7700,2)
+    else:
+        weekly_change=0.0
+
+    weight_trend=[]
+    for log in weight_logs:
+        weight_trend.append({
+            "label":log.date.strftime("%b %d"),
+            "weight":log.weight_kg,
+        })
+    if not weight_trend:
+        weight_trend.append({
+            "label": today.strftime("%b %d"),
+            "weight":current_weight,
+        })
+
+    days_labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    calories_week = []
+    for i in range(7):
+        day = today - timedelta(days=today.weekday() - i)
+        day_history = [h for h in all_history if str(h.date) == str(day)]
+        day_cals = sum(h.calories or 0 for h in day_history)
+        calories_week.append({
+            "label": days_labels[i],
+            "calories": day_cals,
+        })
+
+    return {
+        "success": True,
+        "start_weight": start_weight,
+        "current_weight": current_weight,
+        "goal_weight": goal_weight,
+        "goal_type": goal_type,
+        "changed_so_far": max(changed, 0),
+        "remaining": max(remaining, 0),
+        "progress_pct": min(max(progress, 0), 100),
+        "days_tracking": distinct_days,
+        "streak": streak,
+        "avg_calories": avg_calories,
+        "weekly_change": weekly_change,
+        "calorie_goal": calorie_goal,
+        "weight_trend": weight_trend,
+        "calories_week": calories_week,
+    }
+
