@@ -577,19 +577,46 @@ def update_profile(request:UpdateProfileRequest,db:Session=Depends(get_db),curre
             raise HTTPException(status_code=400, detail="Email already taken.")
         current_user.email = request.email
 
+    old_goal_type = current_user.goal_type
+
     if request.full_name is not None: current_user.full_name = request.full_name
     if request.age is not None: current_user.age = request.age
     if request.gender is not None: current_user.gender = request.gender
     if request.height_cm is not None: current_user.height_cm = request.height_cm
-    if request.weight_kg is not None: current_user.weight_kg = request.weight_kg
     if request.activity_level is not None: current_user.activity_level = request.activity_level
     if request.goal_type is not None: current_user.goal_type = request.goal_type
     if request.calorie_goal_mode is not None: current_user.calorie_goal_mode = request.calorie_goal_mode
     if request.calorie_goal_manual is not None: current_user.calorie_goal_manual = request.calorie_goal_manual
     if request.weight_goal_kg is not None: current_user.weight_goal_kg = request.weight_goal_kg
 
-    if request.goal_type and request.goal_type != current_user.goal_type:
+    if request.weight_kg is not None:
+        current_user.weight_kg = request.weight_kg
+        today = date_type.today()
+        existing = db.query(WeightLog).filter(
+            WeightLog.user_id == current_user.id,
+            WeightLog.date == today
+        ).first()
+
+        if existing:
+            existing.weight_kg = request.weight_kg
+        else:
+            db.add(WeightLog(
+                user_id=current_user.id,
+                date=today,
+                weight_kg=request.weight_kg
+            ))
+
+    if request.goal_type is not None and request.goal_type != old_goal_type:
         current_user.start_weight = current_user.weight_kg
+        today = date_type.today()
+        existing = db.query(WeightLog).filter(
+            WeightLog.user_id == current_user.id,
+            WeightLog.date == today
+        ).first()
+        if existing:
+            existing.weight_kg = current_user.weight_kg
+        else:
+            db.add(WeightLog(user_id=current_user.id, date=today, weight_kg=current_user.weight_kg))
 
     db.commit()
     db.refresh(current_user)
@@ -764,13 +791,14 @@ def get_progress(db:Session=Depends(get_db),current_user:User=Depends(get_curren
     weight_trend=[]
     for log in weight_logs:
         weight_trend.append({
+            "date": log.date.isoformat(),
             "label":log.date.strftime("%b %d"),
-            "weight":log.weight_kg,
+            "weight":float(log.weight_kg),
         })
     if not weight_trend:
         weight_trend.append({
             "label": today.strftime("%b %d"),
-            "weight":current_weight,
+            "weight":float(current_weight),
         })
 
     days_labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
