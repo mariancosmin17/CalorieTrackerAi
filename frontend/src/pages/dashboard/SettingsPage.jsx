@@ -8,16 +8,16 @@ import { resolveCalorieGoal, calculateCalorieGoal } from '../../utils/calorieCal
 export function SettingsPage() {
     const navigate = useNavigate();
 
-    const [profile, setProfile]                 = useState(null);
-    const [calorieExpanded, setCalorieExpanded] = useState(false);
-    const [weightExpanded, setWeightExpanded]   = useState(false);
-    const [calorieMode, setCalorieMode]         = useState('auto');
-    const [calorieManual, setCalorieManual]     = useState('');
-    const [weightGoalInput, setWeightGoalInput] = useState('');
-    const [savingCalorie, setSavingCalorie]     = useState(false);
-    const [savingWeight, setSavingWeight]       = useState(false);
-    const [calorieMsg, setCalorieMsg]           = useState(null);
-    const [weightMsg, setWeightMsg]             = useState(null);
+    const [profile, setProfile]= useState(null);
+    const [calorieExpanded, setCalorieExpanded]= useState(false);
+    const [weightExpanded, setWeightExpanded]= useState(false);
+    const [calorieMode, setCalorieMode]= useState('auto');
+    const [calorieManual, setCalorieManual]= useState('');
+    const [weightGoalInput, setWeightGoalInput]= useState('');
+    const [savingCalorie, setSavingCalorie]= useState(false);
+    const [savingWeight, setSavingWeight]= useState(false);
+    const [calorieMsg, setCalorieMsg]= useState(null);
+    const [weightMsg, setWeightMsg]= useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
