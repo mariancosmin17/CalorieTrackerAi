@@ -229,21 +229,31 @@ export function ProgressPage() {
                         <ArrowLeftIcon className="w-4 h-4" />
                         <span className="text-sm">Back</span>
                     </button>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-3xl font-bold text-white">Your Progress</h1>
-                            <p className="text-blue-200 text-sm mt-1">
-                                {data && getSubtitle(data.goal_type)}
-                            </p>
-                        </div>
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <h1 className="text-3xl font-bold text-white leading-tight">
+                          Your Progress
+                        </h1>
+                        <p className="text-blue-200 text-sm mt-1">
+                          {data && getSubtitle(data.goal_type)}
+                        </p>
+                      </div>
 
+                      <div className="flex sm:justify-end sm:mt-5 ">
                         <button
-                            onClick={() => setShowModal(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-white bg-opacity-20 text-white rounded-xl hover:bg-opacity-30 transition-all"
+                          onClick={() => setShowModal(true)}
+                          className="
+                            inline-flex items-center justify-center gap-2
+                            px-4 py-2
+                            bg-white/20 text-white rounded-xl
+                            hover:bg-white/30 transition-all
+                            w-full sm:w-auto
+                          "
                         >
-                            <PlusCircleIcon className="w-5 h-5" />
-                            <span className="text-sm font-medium">Log Weight</span>
+                          <PlusCircleIcon className="w-5 h-5" />
+                          <span className="text-sm font-medium whitespace-nowrap">Log Weight</span>
                         </button>
+                      </div>
                     </div>
                 </div>
 
@@ -356,7 +366,16 @@ export function ProgressPage() {
                                                 </linearGradient>
                                             </defs>
                                             <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-                                            <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                                            <XAxis
+                                              dataKey="date"
+                                              tick={{ fontSize: 11, fill: '#9CA3AF' }}
+                                              axisLine={false}
+                                              tickLine={false}
+                                              tickFormatter={(value) => {
+                                                const d = new Date(value);
+                                                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                              }}
+                                            />
                                             <YAxis
                                                 domain={['auto', 'auto']}
                                                 tick={{ fontSize: 11, fill: '#9CA3AF' }}
@@ -365,8 +384,12 @@ export function ProgressPage() {
                                                 width={35}
                                             />
                                             <Tooltip
-                                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
-                                                formatter={(val) => [`${val} kg`, 'Weight']}
+                                              contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
+                                              labelFormatter={(value) => {
+                                                const d = new Date(value);
+                                                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                              }}
+                                              formatter={(val) => [`${val} kg`, 'Weight']}
                                             />
                                             <Area
                                                 type="monotone"
