@@ -733,13 +733,13 @@ def get_progress(db:Session=Depends(get_db),current_user:User=Depends(get_curren
         remaining=0
         progress=100
 
-    all_history=db.query(History).filter(History.user_id==current_user.id).order_by(History.date.asc()).all()
-    distinct_days=len(set(str(h.date) for h in all_history))
+    all_history=db.query(History).filter(History.user_id==current_user.id).order_by(History.log_date.asc()).all()
+    distinct_days=len(set(h.log_date.date() for h in all_history if h.log_date))
     today=date_type.today()
     streak=0
     check_day=today
-    logged_days=set(str(h.date) for h in all_history)
-    while str(check_day) in logged_days:
+    logged_days=set(h.log_date.date() for h in all_history)
+    while check_day in logged_days:
         streak+=1
         check_day-=timedelta(days=1)
 
@@ -750,10 +750,10 @@ def get_progress(db:Session=Depends(get_db),current_user:User=Depends(get_curren
         avg_calories=0
 
     week_ago=today-timedelta(days=7)
-    week_history=[h for h in all_history if h.date>=week_ago]
+    week_history=[h for h in all_history if h.log_date and h.log_date.date()>=week_ago]
     weekly_calories=sum(h.calories or 0 for h in week_history)
 
-    week_days=len(set(str(h.date) for h in week_history))
+    week_days=len(set(h.log_date.date() for h in week_history if h.log_date))
     if week_days>0 and calorie_goal:
         avg_weekly_cal=weekly_calories/week_days
         daily_diff=avg_weekly_cal-calorie_goal
@@ -777,7 +777,7 @@ def get_progress(db:Session=Depends(get_db),current_user:User=Depends(get_curren
     calories_week = []
     for i in range(7):
         day = today - timedelta(days=today.weekday() - i)
-        day_history = [h for h in all_history if str(h.date) == str(day)]
+        day_history = [h for h in all_history if h.log_date and h.log_date.date() == day]
         day_cals = sum(h.calories or 0 for h in day_history)
         calories_week.append({
             "label": days_labels[i],
