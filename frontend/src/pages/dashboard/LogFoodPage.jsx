@@ -19,6 +19,7 @@ const PAGE_SIZE=10;
 export function LogFoodPage(){
     const navigate=useNavigate();
     const fileInputRef=useRef(null);
+    const cameraInputRef = useRef(null);
 
     const [selectedImage,setSelectedImage]=useState(null);
     const [imagePreview,setImagePreview]=useState(null);
@@ -165,6 +166,7 @@ export function LogFoodPage(){
             };
             reader.readAsDataURL(file);
         }
+        e.target.value='';
     };
 
     const handleRemoveImage=()=>{
@@ -176,7 +178,7 @@ export function LogFoodPage(){
     };
 
     const handleTakePhoto = () => {
-        alert('Camera feature coming soon!');
+        cameraInputRef.current?.click();
     };
 
     const handleAnalyze = async () => {
@@ -301,6 +303,14 @@ export function LogFoodPage(){
                             onChange={handleFileSelect}
                             className="hidden"
                         />
+                        <input
+                          ref={cameraInputRef}
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          onChange={handleFileSelect}
+                          className="hidden"
+                        />
                         {imagePreview ? (
                             <div className="relative mb-4">
                                 <img
@@ -347,14 +357,15 @@ export function LogFoodPage(){
                                 ) : 'Analyze Photo'}
                             </button>
                         )}
-
-                        <button
-                            onClick={handleTakePhoto}
-                            className="w-full py-3 px-6 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold flex items-center justify-center gap-2"
-                        >
-                            <CameraIcon className="w-5 h-5" />
-                            Take Live Picture
-                        </button>
+                        {!imagePreview && (
+                            <button
+                                onClick={handleTakePhoto}
+                                className="w-full py-3 px-6 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold flex items-center justify-center gap-2"
+                            >
+                                <CameraIcon className="w-5 h-5" />
+                                Take Live Picture
+                            </button>
+                        )}
                     </div>
                 </div>
                 {!imagePreview && (
