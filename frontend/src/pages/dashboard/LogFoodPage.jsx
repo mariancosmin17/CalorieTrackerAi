@@ -460,11 +460,8 @@ export function LogFoodPage(){
                                                 </div>
                                                 {isExpanded && (
                                                     <div className="px-2 pb-3">
-                                                        {/* Linie subtilă de separare */}
                                                         <div className="border-t border-gray-100 mb-2" />
-                                                        {/* Textul "Add to:" */}
                                                         <p className="text-xs text-gray-400 mb-2 px-1">Add to:</p>
-                                                        {/* Coloana cu 4 opțiuni — fiecare pe rândul lui */}
                                                         <div className="flex flex-col gap-1">
                                                             {MEAL_TYPES.map(type => (
                                                                 <button
