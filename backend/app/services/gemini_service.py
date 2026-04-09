@@ -85,16 +85,8 @@ class GeminiNutritionService:
               "macronutrients": {{
                 "protein_g": 28,
                 "carbs_g": 85,
-                "fat_g": 32,
-                "fiber_g": 4
-              }},
-              "micronutrients": {{
-                "sodium_mg": 1250,
-                "calcium_mg": 320,
-                "iron_mg": 3.5,
-                "vitamin_c_mg": 2
-              }},
-              "portion_size": "medium"
+                "fat_g": 32
+              }}
             }}
           ],
           "total_summary": {{
