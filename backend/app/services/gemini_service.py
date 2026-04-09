@@ -114,42 +114,57 @@ class GeminiNutritionService:
         - For confirmed foods keep the original name that you received,use that one for nutrition_estimates
         """
         return prompt
-    def analyze_image(self,image_path:str,yolo_detections:List[str])->Optional[Dict]:
-        try:
-            image=Image.open(image_path)
-            prompt=self.create_prompt(yolo_detections)
-            response=self.client.models.generate_content(
-                model=self.model_name,
-                contents=[prompt,image],
-                config={'temperature':0.3,
-                        'max_output_tokens':4096}
-            )
-            result_text=response.text
-            logger.info(response.text)
-            parsed=self._parse_json_response(result_text)
-            return parsed
-        except Exception as e:
-            print(f"Gemini API error: {e}")
-            return None
+   
+    def analyze_image(self,image_path:str,yolo_detections:List[str],max_retries:int=2)->Optional[Dict]:
+        image=Image.open(image_path)
+        prompt=self.create_prompt(yolo_detections)
+        for attempt in range(max_retries+1):
+            try:
+                response=self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=[prompt,image],
+                    config={'temperature':0.3,
+                            'max_output_tokens':8192,
+                            'response_mime_type':'application/json'}
+                )
+                result_text=response.text
+                logger.info(result_text)
+                parsed=self._parse_json_response(result_text)
+                if parsed is not None:
+                    return parsed
+                logger.warning(f"Attempt {attempt+1}/{max_retries+1}: JSON parse failed, retrying...")
+            except Exception as e:
+                logger.error(f"Attempt {attempt+1}/{max_retries+1}: Gemini API error: {e}")
+                if attempt==max_retries:
+                    return None
+        logger.error("All Gemini attempts failed")
+        return None
 
     def _parse_json_response(self,text:str)->Optional[Dict]:
-        text = text.strip()
+      text = text.strip()
+      if text.startswith('```'):
+          first_newline = text.find('\n')
+          if first_newline != -1:
+            text = text[first_newline+1:]
+          if text.endswith('```'):
+            text = text[:-3]
+          text = text.strip()
 
-        if text.startswith('```'):
-            parts = text.split('```')
-            if len(parts) >= 3:
-                json_block = parts[1].strip()
-                if json_block.startswith('json'):
-                    json_block=json_block[4:].strip()
-                text = json_block
+      try:
+          return json.loads(text)
+      except json.JSONDecodeError as e:
+          logger.error(f"JSON parse error: {e}")
+          logger.error(f"First 500 chars:\n{text[:500]}")
 
-        try:
-            return json.loads(text)
-        except json.JSONDecodeError as e:
-            print(f"JSON parse error: {e}")
-            print(f"First 300 chars of attempted JSON:\n{text[:300]}")
-            return None
+          json_match = re.search(r'\{.*', text, re.DOTALL)
+          if json_match:
+              try:
+                  return json.loads(json_match.group())
+              except json.JSONDecodeError:
+                  pass
 
+          logger.error("All JSON parse attempts failed")
+          return None
 
 if __name__=="__main__":
     service = GeminiNutritionService()
