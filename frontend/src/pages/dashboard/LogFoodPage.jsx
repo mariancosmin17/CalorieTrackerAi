@@ -1,5 +1,5 @@
 import { useState, useRef,useEffect,useCallback } from 'react';
-import { useNavigate, useBlocker } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeftIcon,
   PhotoIcon,
@@ -38,8 +38,6 @@ export function LogFoodPage(){
     const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
     const [isQuickAdding, setIsQuickAdding] = useState(false);
     const [successMsg, setSuccessMsg] = useState('');
-
-    useBlocker(isAnalyzing);
 
     const fetchRecentMeals=useCallback(async ()=>{
         setIsLoadingMeals(true);
