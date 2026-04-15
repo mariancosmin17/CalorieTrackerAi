@@ -332,7 +332,8 @@ async def predict(file: UploadFile=File(...),db:Session=Depends(get_db),current_
         with open(temp_path,'wb') as f:
             f.write(contents)
         try:
-            result=nutrition_estimator.analyze_image(temp_path)
+            from starlette.concurrency import run_in_threadpool
+            result = await run_in_threadpool(nutrition_estimator.analyze_image, temp_path)
             if result is None:
                 raise HTTPException(
                     status_code=500,
