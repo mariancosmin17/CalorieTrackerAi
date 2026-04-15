@@ -40,7 +40,10 @@ export function DiaryPage(){
       setIsLoading(true);
       setError(null);
       try{
-          const dateStr=selectedDate.toISOString().split('T')[0];
+          const year = selectedDate.getFullYear();
+          const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+          const day = String(selectedDate.getDate()).padStart(2, '0');
+          const dateStr = `${year}-${month}-${day}`;
           const response=await getFoodHistory(dateStr);
           if(response && response.history){
               const normalized=response.history.map(item=>({
