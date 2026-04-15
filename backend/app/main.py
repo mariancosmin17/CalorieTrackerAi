@@ -65,9 +65,10 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
 app = FastAPI()
 
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

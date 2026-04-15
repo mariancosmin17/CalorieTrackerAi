@@ -1,0 +1,11 @@
+venv_py311/
+__pycache__/
+*.pyc
+.env
+uploads/
+data/
+test_comparison/
+.git/
+.idea/
+yolov8n.pt
+yolov8m.pt
