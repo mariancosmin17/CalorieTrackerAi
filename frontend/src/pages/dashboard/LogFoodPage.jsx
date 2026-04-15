@@ -325,7 +325,8 @@ export function LogFoodPage(){
                                 />
                                 <button
                                     onClick={handleRemoveImage}
-                                    className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+                                    disabled={isAnalyzing}
+                                    className={`absolute top-2 right-2 p-2 bg-white rounded-full shadow-lg transition-colors ${isAnalyzing ? 'opacity-30 cursor-not-allowed' : 'hover:bg-gray-100'}`}
                                 >
                                     <XMarkIcon className="w-5 h-5 text-gray-600" />
                                 </button>
