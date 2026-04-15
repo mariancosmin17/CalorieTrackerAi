@@ -1,69 +1,61 @@
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from app.core.config import settings
+import resend
+import os
+import logging
 
-def send_email(to_email:str,subject:str,body:str)->bool:
+logger = logging.getLogger(__name__)
+
+resend.api_key = os.getenv("RESEND_API_KEY", "")
+
+FROM_EMAIL = "onboarding@resend.dev"
+FROM_NAME = os.getenv("SMTP_FROM_NAME", "CalorieTracker AI")
+
+def send_reset_code_email(to_email: str, code: str, expires_in_minutes: int = 15) -> bool:
     try:
-        message = MIMEMultipart()
-        message["From"] = f"{settings.SMTP_FROM_NAME} <{settings.SMTP_FROM_EMAIL}>"
-        message["To"] = to_email
-        message["Subject"] = subject
-        message.attach(MIMEText(body, "html"))
-        server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
-        server.starttls()
-        server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
-        server.send_message(message)
-        server.quit()
+        params = {
+            "from": f"{FROM_NAME} <{FROM_EMAIL}>",
+            "to": [to_email],
+            "subject": "Password Reset Code",
+            "html": f"""
+                <div style="font-family: Arial, sans-serif; max-width: 480px; margin: auto;">
+                    <h2 style="color: #0284c7;">Password Reset Code</h2>
+                    <p>Your password reset code is:</p>
+                    <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px;
+                                color: #0284c7; padding: 20px; background: #f0f9ff;
+                                border-radius: 12px; text-align: center; margin: 20px 0;">
+                        {code}
+                    </div>
+                    <p style="color: #666;">This code expires in <strong>{expires_in_minutes} minutes</strong>.</p>
+                    <p style="color: #999; font-size: 12px;">If you didn't request this, ignore this email.</p>
+                </div>
+            """,
+        }
+        resend.Emails.send(params)
+        logger.info(f"Reset code email sent to {to_email}")
         return True
     except Exception as e:
-        print(f"Error sending email: {e}")
+        logger.error(f"Error sending email: {e}")
         return False
 
-def send_reset_code(to_email: str, reset_code: str) -> bool:
-    subject = "Reset Your Password - Calorie Tracker Ai"
-
-    body = f"""
-    <html>
-        <body style="font-family: Arial, sans-serif; padding: 20px;">
-            <h2 style="color: #333;">Password Reset Request</h2>
-            <p>You have requested to reset your password. </p>
-            <p>Your password reset code is: </p>
-            <div style="background-color: #f4f4f4; padding:  15px; border-radius: 5px; text-align: center;">
-                <h1 style="color: #007bff; letter-spacing: 5px; margin: 0;">{reset_code}</h1>
-            </div>
-            <p style="margin-top: 20px;">This code will expire in <strong>{settings.RESET_CODE_EXPIRE_MINUTES} minutes</strong>.</p>
-            <p>If you didn't request this, please ignore this email.</p>
-            <hr style="margin-top: 30px;">
-            <p style="color:  #999; font-size: 12px;">Food AI App - Calorie Tracker</p>
-        </body>
-    </html>
-    """
-    return send_email(to_email, subject, body)
-
-def send_support_email(user_email: str, username: str, message: str) -> bool:
-    subject = f"Support Request from {username} - CalorieTracker AI"
-    body = f"""
-    <html>
-        <body style="font-family: Arial, sans-serif; padding: 20px;">
-            <h2 style="color: #1E3A5F;">New Support Request</h2>
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                    <td style="padding: 8px; font-weight: bold; color: #555;">From:</td>
-                    <td style="padding: 8px;">{username}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px; font-weight: bold; color: #555;">Email:</td>
-                    <td style="padding: 8px;">{user_email}</td>
-                </tr>
-            </table>
-            <div style="margin-top: 20px; background-color: #f4f4f4; padding: 15px; border-radius: 8px;">
-                <h3 style="color: #333; margin-top: 0;">Message:</h3>
-                <p style="color: #444; line-height: 1.6;">{message}</p>
-            </div>
-            <hr style="margin-top: 30px;">
-            <p style="color: #999; font-size: 12px;">CalorieTracker AI - Support System</p>
-        </body>
-    </html>
-    """
-    return send_email(settings.SMTP_FROM_EMAIL, subject, body)
+def send_support_email(user_email: str, message: str) -> bool:
+    try:
+        params = {
+            "from": f"{FROM_NAME} <{FROM_EMAIL}>",
+            "to": [os.getenv("SUPPORT_EMAIL", "")],
+            "subject": f"Support Request from {user_email}",
+            "html": f"""
+                <div style="font-family: Arial, sans-serif; max-width: 480px; margin: auto;">
+                    <h2 style="color: #0284c7;">New Support Request</h2>
+                    <p><strong>From:</strong> {user_email}</p>
+                    <div style="background: #f9f9f9; padding: 16px; border-radius: 8px;
+                                border-left: 4px solid #0284c7; margin: 16px 0;">
+                        {message.replace(chr(10), '<br>')}
+                    </div>
+                </div>
+            """,
+        }
+        resend.Emails.send(params)
+        logger.info(f"Support email sent from {user_email}")
+        return True
+    except Exception as e:
+        logger.error(f"Error sending support email: {e}")
+        return False
