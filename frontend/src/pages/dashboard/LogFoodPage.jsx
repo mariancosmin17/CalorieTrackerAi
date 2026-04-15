@@ -1,5 +1,5 @@
 import { useState, useRef,useEffect,useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useBlocker } from 'react-router-dom';
 import {
   ArrowLeftIcon,
   PhotoIcon,
@@ -38,6 +38,8 @@ export function LogFoodPage(){
     const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
     const [isQuickAdding, setIsQuickAdding] = useState(false);
     const [successMsg, setSuccessMsg] = useState('');
+
+    useBlocker(isAnalyzing);
 
     const fetchRecentMeals=useCallback(async ()=>{
         setIsLoadingMeals(true);
@@ -269,7 +271,12 @@ export function LogFoodPage(){
                 <div className="mb-6">
                    <button
                     onClick={handleBack}
-                    className="flex items-center gap-2 text-white hover:text-blue-200 transition-colors mb-4"
+                    disabled={isAnalyzing}
+                    className={`flex items-center gap-2 transition-colors mb-4 ${
+                        isAnalyzing
+                            ? 'text-gray-400 cursor-not-allowed'
+                            : 'text-white hover:text-blue-200'
+                    }`}
                    >
                     <ArrowLeftIcon className="w-5 h-5" />
                     <span className="text-sm font-medium">Back</span>
@@ -513,6 +520,12 @@ export function LogFoodPage(){
                 isLoading={isQuickAdding}
             />
 
+            {isAnalyzing && (
+                <div
+                    className="fixed bottom-0 left-0 right-0 h-16 z-[60] cursor-not-allowed"
+                    onClick={(e) => e.stopPropagation()}
+                />
+            )}
             <BottomNavbar/>
         </div>
     );
