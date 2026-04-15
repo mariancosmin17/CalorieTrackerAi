@@ -9,7 +9,7 @@ resend.api_key = os.getenv("RESEND_API_KEY", "")
 FROM_EMAIL = "onboarding@resend.dev"
 FROM_NAME = os.getenv("SMTP_FROM_NAME", "CalorieTracker AI")
 
-def send_reset_code_email(to_email: str, code: str, expires_in_minutes: int = 15) -> bool:
+def send_reset_code(to_email: str, code: str, expires_in_minutes: int = 15) -> bool:
     try:
         params = {
             "from": f"{FROM_NAME} <{FROM_EMAIL}>",
@@ -36,16 +36,16 @@ def send_reset_code_email(to_email: str, code: str, expires_in_minutes: int = 15
         logger.error(f"Error sending email: {e}")
         return False
 
-def send_support_email(user_email: str, message: str) -> bool:
+def send_support_email(user_email: str, username: str, message: str) -> bool:
     try:
         params = {
             "from": f"{FROM_NAME} <{FROM_EMAIL}>",
             "to": [os.getenv("SUPPORT_EMAIL", "")],
-            "subject": f"Support Request from {user_email}",
+            "subject": f"Support Request from {username}",
             "html": f"""
                 <div style="font-family: Arial, sans-serif; max-width: 480px; margin: auto;">
                     <h2 style="color: #0284c7;">New Support Request</h2>
-                    <p><strong>From:</strong> {user_email}</p>
+                    <p><strong>From:</strong> {username} ({user_email})</p>
                     <div style="background: #f9f9f9; padding: 16px; border-radius: 8px;
                                 border-left: 4px solid #0284c7; margin: 16px 0;">
                         {message.replace(chr(10), '<br>')}
@@ -54,7 +54,7 @@ def send_support_email(user_email: str, message: str) -> bool:
             """,
         }
         resend.Emails.send(params)
-        logger.info(f"Support email sent from {user_email}")
+        logger.info(f"Support email sent from {username} ({user_email})")
         return True
     except Exception as e:
         logger.error(f"Error sending support email: {e}")
